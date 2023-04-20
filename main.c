@@ -35,21 +35,64 @@ Polygon polygons[MAX_POLYGONS];
 
 /* ------------- Definindo funções de adiciona e remove objetos -------------*/
 void addPoint(float x, float y){
+    if(numPoints == MAX_POINTS){
+        // op. invalida fzr alguma coisa
+    }
+    else{
+        numPoints += 1;
+    }
 }
 
 void removePoint(float x, float y){
+    if(numPoints == 0){
+        // op. invalida fzr alguma coisa
+    }
+    else{
+        numPoints -= 1;
+    }
 }
 
 void addLine(){
+    if(numLines == MAX_LINES){
+        // op. invalida fzr alguma coisa
+    }
+    else{
+        numLines += 1;
+    }
 }
 
 void removeLine(){
+    if(numLines == 0){
+        // op. invalida fzr alguma coisa
+    }
+    else{
+        numLines -= 1;
+    }
 }
 
 void addPolygon(){
+    if(numPolygons == MAX_POLYGONS){
+        // op. invalida fzr alguma coisa
+    }
+    else{
+        numPolygons += 1;
+    }
 }
 
 void removePolygon(){
+    if(numPolygons == 0){
+        // op. invalida fzr alguma coisa
+    }
+    else{
+        numPolygons -= 1;
+    }
+}
+
+/* ------------- Funções de matrizes -------------*/
+void multiplyMatrix(){
+}
+
+void sumMatrix(){
 }
 
 /* ------------- Funções de desenho de objetos -------------*/
