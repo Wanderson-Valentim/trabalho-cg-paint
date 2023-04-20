@@ -3,18 +3,75 @@
 #include <GL/glut.h>
 #include <math.h>
 
-// Funções a serem feitas
-void drawCircle() {}
+#define MAX_LINES 50
+#define MAX_POINTS 50
+#define MAX_POLYGONS 30
+#define MAX_POINTS_POLYGON 10
 
-void drawPoligono(){}
+/* ------------- Definindo estrutura dos objetos -------------*/
+typedef struct{
+    float x;
+    float y;
+}Point;
 
-void criaLinha(){}
+typedef struct{
+    Point start;
+    Point end;
+}Line;
 
-void rotacionar(){}
+typedef struct{
+    Point points[MAX_POINTS_POLYGON];
+}Polygon;
 
-void transladar(){}
+/* ------------- Definindo variaveis dos objetos -------------*/
+int numLines = 0;
+Line lines[MAX_LINES];
 
-void eventosDoMenu(int option) {
+int numPoints = 0;
+Point points[MAX_POINTS];
+
+int numPolygons = 0;
+Polygon polygons[MAX_POLYGONS];
+
+/* ------------- Definindo funções de adiciona e remove objetos -------------*/
+void addPoint(float x, float y){
+}
+
+void removePoint(float x, float y){
+}
+
+void addLine(){
+}
+
+void removeLine(){
+}
+
+void addPolygon(){
+}
+
+void removePolygon(){
+}
+
+/* ------------- Funções de desenho de objetos -------------*/
+void drawCircle() {
+}
+
+void drawPolygon(){
+}
+
+void drawLine(){
+}
+
+void rotate(){
+}
+
+void translate(){
+}
+
+void scale(){
+}
+
+void menuEvents(int option) {
     switch(option) {
         case 1:
             //criar linha
@@ -29,18 +86,21 @@ void eventosDoMenu(int option) {
             //rotacionar
             break;
         case 5:
-            //transladar 
+            //transladar
             break;
     }
 }
 
-void criarMenu() {
-    int menu_id = glutCreateMenu(eventosDoMenu);
+void createMenu() {
+    int menu_id = glutCreateMenu(menuEvents);
+
     glutAddMenuEntry("Linha", 1);
     glutAddMenuEntry("Circulo", 2);
     glutAddMenuEntry("Poligono", 3);
     glutAddMenuEntry("Rotacionar objeto", 4);
     glutAddMenuEntry("Transladar objeto", 5);
+    glutAddMenuEntry("Escala de objeto", 6);
+
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -58,7 +118,9 @@ int main(int argc, char** argv) {
     glutInitWindowSize(500, 500);
     glutCreateWindow("Paint bugado");
     glClearColor(1.0, 1.0, 1.0, 0.0);
-    criarMenu();
+
+    createMenu();
+
     glutDisplayFunc(display);
     glutMainLoop();
     return 0;
