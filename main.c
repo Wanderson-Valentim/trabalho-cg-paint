@@ -41,6 +41,10 @@ void addPoint(float x, float y){
         // op. invalida fzr alguma coisa
     }
     else{
+        Point point;
+        point.x = x;
+        point.y = y;
+        lines[numLines] = point;
         numPoints += 1;
     }
 }
@@ -50,6 +54,17 @@ void removePoint(float x, float y){
         // op. invalida fzr alguma coisa
     }
     else{
+        int indexElement = 0
+
+        while(indexElement < numPoints || (x != points.x && y != points.y)){
+            indexElement++;
+        }
+
+        if(indexElement < numPoints){
+            for(int i = indexElement; i < numPoints-1; i++){
+                points[indexElement] = points[indexElement+1];
+            }
+        }
         numPoints -= 1;
     }
 }
@@ -91,7 +106,8 @@ void removePolygon(){
 }
 
 /* ------------- Funções de matrizes -------------*/
-void multiplyMatrix(){
+void multiplyMatrix(int matrix1[][], int matrix2[][], int result[][]) {
+
 }
 
 void sumMatrix(){
