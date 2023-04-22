@@ -8,6 +8,8 @@
 #define MAX_POLYGONS 30
 #define MAX_POINTS_POLYGON 10
 
+int menuOption;
+
 /* ------------- Definindo estrutura dos objetos -------------*/
 typedef struct{
     float x;
@@ -96,10 +98,12 @@ void sumMatrix(){
 }
 
 /* ------------- Funções de desenho de objetos -------------*/
-void drawCircle() {
+void drawPoint() {
+
 }
 
 void drawPolygon(){
+
 }
 
 void drawLine(){
@@ -114,13 +118,15 @@ void translate(){
 void scale(){
 }
 
+/* ------------- Funções de eventos -------------*/
 void menuEvents(int option) {
+    menuOption = option;
     switch(option) {
         case 1:
-            //criar linha
+            //criar ponto
             break;
         case 2:
-            //circulo
+            //criar linha
             break;
         case 3:
             //poligono
@@ -131,41 +137,62 @@ void menuEvents(int option) {
         case 5:
             //transladar
             break;
+        case 6:
+            //escala
+            break;
+        case 7:
+            //selecao
+            break;
     }
 }
 
-void createMenu() {
-    int menu_id = glutCreateMenu(menuEvents);
+void mouseEvents(int button, int state, int x, int y){
+    printf("%d %d\n", button, menuOption);
+    fflush(stdout); // força a saída do buffer de stdout para poder usar o printf em tempo real
+    glutPostRedisplay();
+}
 
-    glutAddMenuEntry("Linha", 1);
-    glutAddMenuEntry("Circulo", 2);
+void createMenu() {
+    int menuId = glutCreateMenu(menuEvents);
+
+    glutAddMenuEntry("Ponto", 1);
+    glutAddMenuEntry("Linha", 2);
     glutAddMenuEntry("Poligono", 3);
     glutAddMenuEntry("Rotacionar objeto", 4);
     glutAddMenuEntry("Transladar objeto", 5);
     glutAddMenuEntry("Escala de objeto", 6);
+    glutAddMenuEntry("Seleção de objeto", 7);
 
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-void display() {
-    glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(1.0, 1.0, 1.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glFlush();
+// Coloca as funções de inicialização
+// Inicializa os parâmetros do rendering
+int init(void){
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glMatrixMode(GL_PROJECTION);
+    gluOrtho2D(0.0, 500.0, 0.0, 500.0);
 }
 
-int main(int argc, char** argv) {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(500, 500);
-    glutCreateWindow("Paint bugado");
-    glClearColor(1.0, 1.0, 1.0, 0.0);
+void display(void){
+    glClear(GL_COLOR_BUFFER_BIT);
+    glutSwapBuffers();
+}
+
+int main(int argc, char** argv){
+    glutInit(&argc,argv); //inicializa o GLUT
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // configura o modo de display
+    glutInitWindowSize(500, 500); // configura a largura e altura da janela de exibição
+    glutInitWindowPosition(200, 200); // posição da janela na tela
+    glutCreateWindow("Paint bugado"); // cria a janela de exibição
 
     createMenu();
+    glutMouseFunc(mouseEvents);
 
-    glutDisplayFunc(display);
-    glutMainLoop();
+    init();
+    glutDisplayFunc(display); // estabele a função "display como a função callback de exibição"
+    glutMainLoop(); // mostre tudo e espere
+
     return 0;
 }
 
