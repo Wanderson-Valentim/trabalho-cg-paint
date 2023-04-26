@@ -177,8 +177,32 @@ void drawPolygons(){
     }
 }
 
-void rotate(){
-}
+ void rotate(){ // teste para um angulo de 45 graus
+
+     float angle = 45.0 * 3.14159 / 180.0; // converte para radianos
+     float c;
+     float s;
+     //c  = cos(angle); // eu comentei pq n ta reconhecendo no meu pc essas funcao de cos e sin
+     //s = sin(angle); //essas funcao do capeta não estão funcionando ne da biblioteca math.h?
+     
+     GLfloat matrix[] = {
+         c, -s, 0, 0,
+         s, c, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1
+     };
+ 
+    glPushMatrix();// coloca a matriz atual na pilha
+    glMultMatrixf(matrix);//mutiplica a matriz de rotacao pela matriz atual
+    glBegin(GL_LINES);
+    glBegin(GL_LINES);
+    glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
+    glVertex2f(lines[pos].end.x, 582 - lines[pos].end.y);
+     
+    glEnd();
+    glPopMatrix();
+ }
+
 
 void translate(){
 }
