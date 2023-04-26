@@ -267,6 +267,20 @@ void mouseEvents(int button, int state, int x, int y){
                 break;
             case 7:
                 //selecao
+                 /* 
+                   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) { 
+                       printf("%f",&x); 
+                       if (x >= lines[posicao].p1.x && x <= lines[posicao].p2.x && y >= lines[posica].p1.y && y <= line[posicao].p2.y) { 
+                           selectedLine = 0; 
+                           printf("selecionou"); 
+                       } 
+                       else { 
+                           selectedLine = -1; 
+                           printf("selecionou"); 
+                       } 
+                   } 
+                   */ 
+
                 break;
         }
     }
