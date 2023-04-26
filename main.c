@@ -195,7 +195,6 @@ void drawPolygons(){
     glPushMatrix();// coloca a matriz atual na pilha
     glMultMatrixf(matrix);//mutiplica a matriz de rotacao pela matriz atual
     glBegin(GL_LINES);
-    glBegin(GL_LINES);
     glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
     glVertex2f(lines[pos].end.x, 582 - lines[pos].end.y);
      
