@@ -113,6 +113,9 @@ void removeLine(Point start, Point end){
 }
 
 void addPolygon(){
+    printf("%d",numPolygons);
+    fflush(stdout);
+
     if(numPolygons == MAX_POLYGONS){
         // op. invalida fzr alguma coisa
     }
@@ -124,6 +127,9 @@ void addPolygon(){
 }
 
 void addPointOnPolygon(Point point){
+    if(polygons[numPolygons-1].numPoints == MAX_POINTS_POLYGON){
+        addPolygon();
+    }
     int numPointsPolygon = polygons[numPolygons-1].numPoints;
     polygons[numPolygons-1].points[numPointsPolygon] = point;
     polygons[numPolygons-1].numPoints += 1;
@@ -184,20 +190,20 @@ void drawPolygons(){
      float s;
      //c  = cos(angle); // eu comentei pq n ta reconhecendo no meu pc essas funcao de cos e sin
      //s = sin(angle); //essas funcao do capeta não estão funcionando ne da biblioteca math.h?
-     
+
      GLfloat matrix[] = {
          c, -s, 0, 0,
          s, c, 0, 0,
          0, 0, 1, 0,
          0, 0, 0, 1
      };
- 
+
     glPushMatrix();// coloca a matriz atual na pilha
     glMultMatrixf(matrix);//mutiplica a matriz de rotacao pela matriz atual
     glBegin(GL_LINES);
-    glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
-    glVertex2f(lines[pos].end.x, 582 - lines[pos].end.y);
-     
+    //glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
+    //glVertex2f(lines[pos].end.x, 582 - lines[pos].end.y);
+
     glEnd();
     glPopMatrix();
  }
@@ -267,19 +273,19 @@ void mouseEvents(int button, int state, int x, int y){
                 break;
             case 7:
                 //selecao
-                 /* 
-                   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) { 
-                       printf("%f",&x); 
-                       if (x >= lines[posicao].p1.x && x <= lines[posicao].p2.x && y >= lines[posica].p1.y && y <= line[posicao].p2.y) { 
-                           selectedLine = 0; 
-                           printf("selecionou"); 
-                       } 
-                       else { 
-                           selectedLine = -1; 
-                           printf("selecionou"); 
-                       } 
-                   } 
-                   */ 
+                 /*
+                   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+                       printf("%f",&x);
+                       if (x >= lines[posicao].p1.x && x <= lines[posicao].p2.x && y >= lines[posica].p1.y && y <= line[posicao].p2.y) {
+                           selectedLine = 0;
+                           printf("selecionou");
+                       }
+                       else {
+                           selectedLine = -1;
+                           printf("selecionou");
+                       }
+                   }
+                   */
 
                 break;
         }
@@ -317,9 +323,9 @@ void display(void){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    drawPoints();
-    drawLines();
     drawPolygons();
+    drawLines();
+    drawPoints();
 
     glutSwapBuffers();
 }
