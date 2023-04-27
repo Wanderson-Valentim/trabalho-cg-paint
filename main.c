@@ -35,6 +35,8 @@ int menuClick = 0;
 
 int blockPolygonCreation = 0;
 
+float mouseStartPosition[] = {0, 0};
+
 /* ------------- Definindo variaveis dos objetos -------------*/
 int numPoints = 0;
 Point points[MAX_POINTS];
@@ -165,14 +167,107 @@ void sumMatrix(){
 }
 
 /* ------------- Funções de seleção -------------*/
+
+
 int pickPoint(float pointX, float pointY, float mouseX, float mouseY){
     if(mouseX <= pointX + TOLERANCE && mouseX >= pointX - TOLERANCE){
-     if(mouseY <= pointY + TOLERANCE && mouseY >= pointY - TOLERANCE){
-        return 1;
-     }
+        if(mouseY <= pointY + TOLERANCE && mouseY >= pointY - TOLERANCE) return 1;
     }
     return 0;
 }
+
+/*int getCode(Point point, float mouseX, float mouseY){
+    int code = 0;
+    //Verifica se está a esquerda
+    if(point.x < mouseX - TOLERANCE) {printf("Esquerda\n"); code += 8;}
+    //Verifica se está a direita
+    if(point.x > mouseX + TOLERANCE) {printf("Direita\n");code += 4;}
+    //Verifica se está abaixo
+
+    if(582 - point.y < mouseY - TOLERANCE) {code += 2;}
+    //Verifica se está acima
+    if(582 - point.y > mouseY + TOLERANCE) {code += 1;}
+    return code;
+}
+
+int pickLine(Point startPoint, Point endPoint, float mouseX, float mouseY){
+    printf("Ponto Start\n");
+    int startPointCode = getCode(startPoint, mouseX, mouseY);
+    printf("Ponto End\n");
+    int endPointCode = getCode(endPoint, mouseX, mouseY);
+
+    printf("Codes: %d, %d\n\n\n", startPointCode, endPointCode);
+    fflush(stdout);
+    return 0;
+}*/
+
+/*int pickLine(Point startPoint, Point endPoint, float mouseX, float mouseY){
+    int startPointCode[4];
+    int endPointCode[4];
+    int andOperation[4];
+    int changedStartPointCode;
+    int changedEndPointCode;
+    int aux;
+
+
+    while(1){
+        changedStartPointCode = 0;
+        changedEndPointCode = 0;
+
+        //Código E,D,Ab,Ac
+        //Ponto Inicial
+        //Verifica se está a esquerda
+        if(startPoint.x < mouseX - TOLERANCE) {startPointCode[0] = 1; changedStartPointCode = 1;}
+        else startPointCode[0] = 0;
+        //Verifica se está a direita
+        if(startPoint.x > mouseX + TOLERANCE) {startPointCode[1] = 1; changedStartPointCode = 1;}
+        else startPointCode[1] = 0;
+        //Verifica se está acima
+        if(startPoint.y < mouseY - TOLERANCE) {startPointCode[2] = 1; changedStartPointCode = 1;}
+        else startPointCode[2] = 0;
+        //Verifica se está abaixo
+        if(startPoint.y > mouseY + TOLERANCE) {startPointCode[3] = 1; changedStartPointCode = 1;}
+        else startPointCode[3] = 0;
+
+        //Ponto Final
+        //Verifica se está a esquerda
+        if(endPoint.x < mouseX - TOLERANCE) {endPointCode[0] = 1; changedEndPointCode = 1;}
+        else endPointCode[0] = 0;
+        //Verifica se está a direita
+        if(endPoint.x > mouseX + TOLERANCE) {endPointCode[1] = 1; changedEndPointCode = 1;}
+        else endPointCode[1] = 0;
+        //Verifica se está acima
+        if(endPoint.y < mouseY - TOLERANCE) {endPointCode[2] = 1; changedEndPointCode = 1;}
+        else endPointCode[2] = 0;
+        //Verifica se está abaixo
+        if(endPoint.y > mouseY + TOLERANCE) {endPointCode[3] = 1; changedEndPointCode = 1;}
+        else endPointCode[3] = 0;
+
+        //Se algum dos codigos não foi alterado significa que um
+        //dos pontos da reta está dentro da área selecionável
+        if(changedStartPointCode == 0 || changedEndPointCode == 0) return 1;
+
+        aux = 0;
+        //Realiza operação AND
+        for(int i = 0; i < 4; i++){
+            if(startPointCode[i] == 1 && endPointCode[i] == 1){
+                andOperation[i] = 1;
+                aux += 1;
+            }
+            else{
+                andOperation[i] = 0;
+            }
+        }
+
+        //Se auxiliar igual a 1 significa que a reta está totalmente a
+        //esquerda, a direita, abaixo ou acima da área selecionável
+        if(aux == 1){
+            return 0;
+        }
+    }
+
+    return 0;
+}*/
 
 /* ------------- Funções de desenho de objetos -------------*/
 void drawPoints() {
@@ -237,12 +332,17 @@ void translatePoint(float x, float y){
             points[selectedPoints[i]].y += y;
         }
     }
-    else{
+    else if(y == 0.0){
         for(int i = 0; i < numSelectedPoints; i++){
             points[selectedPoints[i]].x += x;
         }
     }
-
+    else{
+        for(int i = 0; i < numSelectedPoints; i++){
+            points[selectedPoints[i]].x += x;
+            points[selectedPoints[i]].y += y;
+        }
+    }
 }
 
 void scale(){
@@ -305,13 +405,16 @@ void mouseEvents(int button, int state, int x, int y){
                 break;
             case 7:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+                    int wasSelected = 0;
+                    mouseStartPosition[0] = convertedX;
+                    mouseStartPosition[1] = convertedY;
+                    //printf("%f, %f\n",convertedX, convertedY);
                     numSelectedPoints = 0;
                     numSelectedLines = 0;
                     numSelectedPolygons = 0;
 
-                    int wasSelected = 0;
                     //Verifica se algum ponto foi selecionado
-                    for(int i = 0; i < MAX_POINTS; i++){
+                    for(int i = 0; i < numPoints; i++){
                         wasSelected = pickPoint(points[i].x, points[i].y, convertedX, convertedY);
 
                         if(wasSelected == 1){
@@ -322,16 +425,18 @@ void mouseEvents(int button, int state, int x, int y){
                         }
                     }
 
-                    /*
+
                     //Verifica se alguma reta foi selecionado
-                    for(int i = 0; i < MAX_LINES; i++){
-                        wasSelected = //função de selecionar reta
+                    for(int i = 0; i < numLines; i++){
+                        //wasSelected = pickLine(lines[i].start, lines[i].end, convertedX, convertedY);
 
-                        if(wasSelected == 1){
-
-                        }
+                        /*if(wasSelected == 1){
+                            selectedLines[numSelectedLines] = i;
+                            numSelectedLines += 1;
+                        }*/
                     }
 
+                     /*
                     //Verifica se algum poligono foi selecionado
                     for(int i = 0; i < MAX_POLYGONS; i++){
                         wasSelected = //função de selecionar poligono
@@ -341,6 +446,12 @@ void mouseEvents(int button, int state, int x, int y){
                         }
                     }
                     */
+                }
+                if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+                    //printf("%f, %f\n",convertedX, convertedY);
+                    translatePoint(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
+                    glutPostRedisplay();
+                    //fflush(stdout);
                 }
                 break;
         }
