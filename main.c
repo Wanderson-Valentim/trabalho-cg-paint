@@ -8,6 +8,8 @@
 #define MAX_POLYGONS 30
 #define MAX_POINTS_POLYGON 10
 
+#define TOLERANCE 10
+
 /* ------------- Definindo estrutura dos objetos -------------*/
 typedef struct{
     float x;
@@ -34,14 +36,24 @@ int menuClick = 0;
 int blockPolygonCreation = 0;
 
 /* ------------- Definindo variaveis dos objetos -------------*/
-int numLines = 0;
-Line lines[MAX_LINES];
-
 int numPoints = 0;
 Point points[MAX_POINTS];
 
+int numLines = 0;
+Line lines[MAX_LINES];
+
 int numPolygons = 0;
 Polygon polygons[MAX_POLYGONS];
+
+/* ------------- Definindo variaveis dos objetos selecionaveis -------------*/
+int numSelectedPoints = 0;
+int selectedPoints[MAX_POINTS];
+
+int numSelectedLines = 0;
+int selectedLines[MAX_LINES];
+
+int numSelectedPolygons = 0;
+int selectedPolygons[MAX_POLYGONS];
 
 /* ------------- Definindo funções de adiciona e remove objetos -------------*/
 void addPoint(float x, float y){
@@ -152,6 +164,16 @@ void removePolygon(){
 void sumMatrix(){
 }
 
+/* ------------- Funções de seleção -------------*/
+int pickPoint(float pointX, float pointY, float mouseX, float mouseY){
+    if(mouseX <= pointX + TOLERANCE && mouseX >= pointX - TOLERANCE){
+     if(mouseY <= pointY + TOLERANCE && mouseY >= pointY - TOLERANCE){
+        return 1;
+     }
+    }
+    return 0;
+}
+
 /* ------------- Funções de desenho de objetos -------------*/
 void drawPoints() {
     glColor3f(0.0, 1.0, 1.0);
@@ -256,7 +278,6 @@ void mouseEvents(int button, int state, int x, int y){
                     point.x = convertedX;
                     point.y = convertedY;
                     addPointOnPolygon(point);
-
                 }
                 if(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP){
                     blockPolygonCreation = 0;
@@ -272,21 +293,44 @@ void mouseEvents(int button, int state, int x, int y){
                 //escala
                 break;
             case 7:
-                //selecao
-                 /*
-                   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-                       printf("%f",&x);
-                       if (x >= lines[posicao].p1.x && x <= lines[posicao].p2.x && y >= lines[posica].p1.y && y <= line[posicao].p2.y) {
-                           selectedLine = 0;
-                           printf("selecionou");
-                       }
-                       else {
-                           selectedLine = -1;
-                           printf("selecionou");
-                       }
-                   }
-                   */
+                if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+                    numSelectedPoints = 0;
+                    numSelectedLines = 0;
+                    numSelectedPolygons = 0;
 
+                    int wasSelected = 0;
+                    //Verifica se algum ponto foi selecionado
+                    for(int i = 0; i < MAX_POINTS; i++){
+                        wasSelected = pickPoint(points[i].x, points[i].y, convertedX, convertedY);
+
+                        if(wasSelected == 1){
+                            /*printf("Ponto Selecionado: (%f, %f)\n", points[i].x, points[i].y);
+                            fflush(stdout);*/
+                            selectedPoints[numSelectedPoints] = i;
+                            numSelectedPoints += 1;
+                        }
+                    }
+
+                    /*
+                    //Verifica se alguma reta foi selecionado
+                    for(int i = 0; i < MAX_LINES; i++){
+                        wasSelected = //função de selecionar reta
+
+                        if(wasSelected == 1){
+
+                        }
+                    }
+
+                    //Verifica se algum poligono foi selecionado
+                    for(int i = 0; i < MAX_POLYGONS; i++){
+                        wasSelected = //função de selecionar poligono
+
+                        if(wasSelected == 1){
+
+                        }
+                    }
+                    */
+                }
                 break;
         }
     }
