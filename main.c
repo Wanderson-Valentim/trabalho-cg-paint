@@ -231,7 +231,18 @@ void drawPolygons(){
  }
 
 
-void translate(){
+void translatePoint(float x, float y){
+    if(x == 0.0){
+        for(int i = 0; i < numSelectedPoints; i++){
+            points[selectedPoints[i]].y += y;
+        }
+    }
+    else{
+        for(int i = 0; i < numSelectedPoints; i++){
+            points[selectedPoints[i]].x += x;
+        }
+    }
+
 }
 
 void scale(){
@@ -340,6 +351,28 @@ void mouseEvents(int button, int state, int x, int y){
     glutPostRedisplay();
 }
 
+void keyboardEvents(unsigned char key, int x, int y){
+    if(menuOption == 4){
+        //rotaciona
+    }
+    else if(menuOption == 5){
+        float translateX = 0.0;
+        float translateY = 0.0;
+
+        if(key == 'w' || key == 'W') translateY = -1.0;
+        else if(key == 'd' || key == 'D') translateX = 1.0;
+        else if(key == 'a' || key == 'A') translateX = -1.0;
+        else if(key == 's' || key == 'S') translateY = 1.0;
+
+        translatePoint(translateX, translateY);
+
+        glutPostRedisplay();
+    }
+    else if(menuOption == 6){
+        //escala
+    }
+}
+
 void createMenu() {
     int menuId = glutCreateMenu(menuEvents);
 
@@ -382,6 +415,7 @@ int main(int argc, char** argv){
     glutCreateWindow("Paint bugado"); // cria a janela de exibição
 
     createMenu();
+    glutKeyboardFunc(keyboardEvents);
     glutMouseFunc(mouseEvents);
 
     init();
