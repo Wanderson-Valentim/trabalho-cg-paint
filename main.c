@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define MAX_LINES 50
 #define MAX_POINTS 50
@@ -26,6 +28,7 @@ typedef struct{
     int numPoints;
 }Polygon;
 
+
 /* ------------- Definindo variaveis globais -------------*/
 int numClicksToDrawLine = 0;
 Point clicksToDrawLine[2];
@@ -33,18 +36,25 @@ Point clicksToDrawLine[2];
 int menuOption = 1;
 int menuClick = 0;
 
-int blockPolygonCreation = 0;
+//PARA O CTRL
+bool ctrlPressed = false;
+
+int blockPolygonCreation = false;
 
 float mouseStartPosition[] = {0, 0};
 
 /* ------------- Definindo variaveis dos objetos -------------*/
-int numPoints = 0;
-Point points[MAX_POINTS];
 
-int numLines = 0;
-Line lines[MAX_LINES];
+//Point points[MAX_POINTS];
+//Line lines[MAX_LINES];
+//Polygon polygons[MAX_POLYGONS];
 
-int numPolygons = 0;
+int numPoints,numLines,numPolygons = 0;
+
+Point *points = NULL;
+Line *lines = NULL;
+
+//Polygon *polygons = NULL;
 Polygon polygons[MAX_POLYGONS];
 
 /* ------------- Definindo variaveis dos objetos selecionaveis -------------*/
@@ -59,16 +69,20 @@ int selectedPolygons[MAX_POLYGONS];
 
 /* ------------- Definindo funções de adiciona e remove objetos -------------*/
 void addPoint(float x, float y){
-    if(numPoints == MAX_POINTS){
-        // op. invalida fzr alguma coisa
+    if(points==NULL){
+        //deve ser alocado 
+        points = calloc(1, sizeof(Point));
+    }else{
+        //deve ser realocado
+        Point *temp = realloc(points, (numPoints+1) * sizeof(Point));
+        points=temp;
     }
-    else{
-        Point point;
-        point.x = x;
-        point.y = y;
-        points[numPoints] = point;
-        numPoints += 1;
-    }
+
+    Point point;
+    point.x = x;
+    point.y = y;
+    points[numPoints] = point;
+    numPoints++;
 }
 
 void removePoint(float x, float y){
@@ -93,16 +107,26 @@ void removePoint(float x, float y){
 }
 
 void addLine(Point start, Point end){
-    if(numLines == MAX_LINES){
-        // op. invalida fzr alguma coisa
+    if(lines==NULL){
+        //deve ser alocado 
+        lines = calloc(1, sizeof(Line));
+    }else{
+        //deve ser realocado
+        Line *temp = realloc(lines, (numLines+1) * sizeof(Line));
+        if (temp == NULL) {
+            printf("Erro: não foi possível alocar memória."); //n tem mais espaco na memoria
+            exit(1);
+        }else{
+            lines=temp; 
+        }
     }
-    else{
-        Line line;
-        line.start = start;
-        line.end = end;
-        lines[numLines] = line;
-        numLines += 1;
-    }
+
+    Line line;
+    line.start = start;
+    line.end = end;
+    lines[numLines] = line;
+    numLines += 1;
+
 }
 
 void removeLine(Point start, Point end){
@@ -125,7 +149,6 @@ void removeLine(Point start, Point end){
         }
     }*/
 }
-
 void addPolygon(){
     printf("%d",numPolygons);
     fflush(stdout);
@@ -327,6 +350,7 @@ void drawPolygons(){
 
 
 void translatePoint(float x, float y){
+
     if(x == 0.0){
         for(int i = 0; i < numSelectedPoints; i++){
             points[selectedPoints[i]].y += y;
@@ -379,8 +403,8 @@ void mouseEvents(int button, int state, int x, int y){
                     }
                 }
                 break;
-            case 3:
-                if(button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+          case 3:
+                 if(button == GLUT_LEFT_BUTTON && state == GLUT_UP){
                     if(blockPolygonCreation == 0){
                         addPolygon();
                         blockPolygonCreation = 1;
@@ -393,8 +417,7 @@ void mouseEvents(int button, int state, int x, int y){
                 if(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP){
                     blockPolygonCreation = 0;
                 }
-                break;
-            case 4:
+           case 4:
                 //rotacionar
                 break;
             case 5:
@@ -463,6 +486,35 @@ void mouseEvents(int button, int state, int x, int y){
 }
 
 void keyboardEvents(unsigned char key, int x, int y){
+
+     if (key==26) {
+        printf("Ctrl + Z foi pressionado\n");
+
+         switch(menuOption){
+             case 1:
+                //memset(points, 0, sizeof(points));
+                 if(numPoints!=0){
+                    numPoints--;
+                    points = realloc(points, (numPoints) * sizeof(Point));
+                 }
+                 break;
+             case 2:
+                 if(numLines!=0){
+                    numLines--;
+                    lines = realloc(lines, (numLines) * sizeof(Line));
+                 }
+                break;
+             case 3:
+                if(numPolygons!=0){
+                    numPolygons--;
+                }
+                break;
+         }
+
+        glutPostRedisplay();
+
+     }
+
     if(menuOption == 4){
         //rotaciona
     }
@@ -482,19 +534,29 @@ void keyboardEvents(unsigned char key, int x, int y){
     else if(menuOption == 6){
         //escala
     }
+    /*
+    else if(menuOption==5){
+        if(key==127){
+            printf("Deletando");
+        }
+    }
+    */
 }
+void subMenuEvents(int options){}
 
 void createMenu() {
-    int menuId = glutCreateMenu(menuEvents);
+    int subMenuId = glutCreateMenu(subMenuEvents);
+    glutAddMenuEntry("Triangulo", 1);
+    glutAddMenuEntry("Quadrado", 2);
 
+    int menuId = glutCreateMenu(menuEvents);
     glutAddMenuEntry("Ponto", 1);
     glutAddMenuEntry("Linha", 2);
-    glutAddMenuEntry("Poligono", 3);
+    glutAddSubMenu("Poligono", subMenuId);
     glutAddMenuEntry("Rotacionar objeto", 4);
     glutAddMenuEntry("Transladar objeto", 5);
     glutAddMenuEntry("Escala de objeto", 6);
-    glutAddMenuEntry("Seleção de objeto", 7);
-
+    glutAddMenuEntry("Selecionar objeto", 7);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -535,4 +597,3 @@ int main(int argc, char** argv){
 
     return 0;
 }
-
