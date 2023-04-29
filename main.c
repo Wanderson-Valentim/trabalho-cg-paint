@@ -24,6 +24,7 @@ typedef struct{
 typedef struct{
     Point start;
     Point end;
+    Point center;
 }Line;
 
 typedef struct{
@@ -127,6 +128,10 @@ void addLine(Point start, Point end){
     Line line;
     line.start = start;
     line.end = end;
+    Point center;
+    center.x = (start.x + end.x)/2;
+    center.y = (start.y + end.y)/2;
+    line.center = center;
     lines[numLines] = line;
     numLines += 1;
 
@@ -282,7 +287,7 @@ void drawPoints() {
     glColor3f(0.0, 1.0, 1.0);
     glBegin(GL_POINTS);
         for(int i = 0; i < numPoints; i++){
-            glVertex2f(points[i].x, 582 - points[i].y);
+            glVertex2f(points[i].x, HEIGHT - points[i].y);
         }
     glEnd();
 }
@@ -291,8 +296,8 @@ void drawLines(){
     glColor3f(1.0, 1.0, 0.0);
     for(int i = 0; i < numLines; i++){
         glBegin(GL_LINES);
-            glVertex2f(lines[i].start.x, 582 - lines[i].start.y);
-            glVertex2f(lines[i].end.x, 582 - lines[i].end.y);
+            glVertex2f(lines[i].start.x, HEIGHT - lines[i].start.y);
+            glVertex2f(lines[i].end.x, HEIGHT - lines[i].end.y);
         glEnd();
     }
 }
@@ -302,19 +307,24 @@ void drawPolygons(){
     for(int i = 0; i < numPolygons; i++){
         glBegin(GL_POLYGON);
             for(int j = 0; j < polygons[i].numPoints; j++){
-                glVertex2f(polygons[i].points[j].x, 582 - polygons[i].points[j].y);
+                glVertex2f(polygons[i].points[j].x, HEIGHT - polygons[i].points[j].y);
             }
         glEnd();
     }
 }
 
- void rotate(){ // teste para um angulo de 45 graus
+void rotatePoint(float angle){
+    float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
 
-     float angle = 45.0 * 3.14159 / 180.0; // converte para radianos
-     float c;
-     float s;
-     //c  = cos(angle); // eu comentei pq n ta reconhecendo no meu pc essas funcao de cos e sin
-     //s = sin(angle); //essas funcao do capeta não estão funcionando ne da biblioteca math.h?
+    for(int i = 0; i < numSelectedPoints; i++){
+        points[selectedPoints[i]].x = (points[selectedPoints[i]].x * cos(convertedAngle)) - (points[selectedPoints[i]].y * sin(convertedAngle));
+        points[selectedPoints[i]].y = (points[selectedPoints[i]].y * cos(convertedAngle)) + (points[selectedPoints[i]].x * sin(convertedAngle));
+    }
+
+
+     /*float c, s;
+     c  = cos(angle); // eu comentei pq n ta reconhecendo no meu pc essas funcao de cos e sin
+     s = sin(angle); //essas funcao do capeta não estão funcionando ne da biblioteca math.h?
 
      GLfloat matrix[] = {
          c, -s, 0, 0,
@@ -326,12 +336,32 @@ void drawPolygons(){
     glPushMatrix();// coloca a matriz atual na pilha
     glMultMatrixf(matrix);//mutiplica a matriz de rotacao pela matriz atual
     glBegin(GL_LINES);
-    //glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
+    //glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos https://www.google.com/search?q=multiplica%C3%A7%C3%A3+de+matrizes&sourceid=chrome&ie=UTF-8seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
     //glVertex2f(lines[pos].end.x, 582 - lines[pos].end.y);
 
     glEnd();
-    glPopMatrix();
+    glPopMatrix();*/
  }
+
+void rotateLine(float angle){
+    float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
+    float xr, yr, xStart, yStart, xEnd, yEnd;
+
+    for(int i = 0; i < numSelectedLines; i++){
+        xStart = lines[selectedLines[i]].start.x;
+        yStart = lines[selectedLines[i]].start.y;
+        xEnd = lines[selectedLines[i]].end.x;
+        yEnd = lines[selectedLines[i]].end.y;
+
+        xr = lines[selectedLines[i]].center.x;
+        yr = lines[selectedLines[i]].center.y;
+
+        lines[selectedLines[i]].start.x = xr + xStart*cos(convertedAngle) - xr*cos(convertedAngle) - yStart*sin(convertedAngle) + yr*sin(convertedAngle);
+        lines[selectedLines[i]].start.y = yr + yStart*cos(convertedAngle) - yr*cos(convertedAngle) + xStart*sin(convertedAngle) - yr*sin(convertedAngle);
+        lines[selectedLines[i]].end.x = xr + xEnd*cos(convertedAngle) - xr*cos(convertedAngle) - yEnd*sin(convertedAngle) + yr*sin(convertedAngle);;
+        lines[selectedLines[i]].end.y = yr + yEnd*cos(convertedAngle) - yr*cos(convertedAngle) + xEnd*sin(convertedAngle) - yr*sin(convertedAngle);
+    }
+}
 
 
 void translatePoint(float x, float y){
@@ -347,6 +377,8 @@ void translateLine(float x, float y){
         lines[selectedLines[i]].start.y += y;
         lines[selectedLines[i]].end.x += x;
         lines[selectedLines[i]].end.y += y;
+        lines[selectedLines[i]].center.x = (lines[selectedLines[i]].start.x + lines[selectedLines[i]].end.x)/2;
+        lines[selectedLines[i]].center.y = (lines[selectedLines[i]].start.y + lines[selectedLines[i]].end.y)/2;
     }
 }
 
@@ -487,6 +519,11 @@ void keyboardEvents(unsigned char key, int x, int y){
 
      }
 
+    if(key == 'r'){
+        rotatePoint(1.0);
+        rotateLine(3.0);
+        glutPostRedisplay();
+    }
     /*if(menuOption == 4){
         //rotaciona
     }
