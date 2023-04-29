@@ -10,7 +10,10 @@
 #define MAX_POLYGONS 30
 #define MAX_POINTS_POLYGON 10
 
-#define TOLERANCE 10
+#define TOLERANCE 10.0
+
+#define WIDTH 960.0
+#define HEIGHT 582.0
 
 /* ------------- Definindo estrutura dos objetos -------------*/
 typedef struct{
@@ -70,7 +73,7 @@ int selectedPolygons[MAX_POLYGONS];
 /* ------------- Definindo funções de adiciona e remove objetos -------------*/
 void addPoint(float x, float y){
     if(points==NULL){
-        //deve ser alocado 
+        //deve ser alocado
         points = calloc(1, sizeof(Point));
     }else{
         //deve ser realocado
@@ -108,7 +111,7 @@ void removePoint(float x, float y){
 
 void addLine(Point start, Point end){
     if(lines==NULL){
-        //deve ser alocado 
+        //deve ser alocado
         lines = calloc(1, sizeof(Line));
     }else{
         //deve ser realocado
@@ -117,7 +120,7 @@ void addLine(Point start, Point end){
             printf("Erro: não foi possível alocar memória."); //n tem mais espaco na memoria
             exit(1);
         }else{
-            lines=temp; 
+            lines=temp;
         }
     }
 
@@ -149,6 +152,7 @@ void removeLine(Point start, Point end){
         }
     }*/
 }
+
 void addPolygon(){
     printf("%d",numPolygons);
     fflush(stdout);
@@ -189,108 +193,89 @@ void removePolygon(){
 void sumMatrix(){
 }
 
-/* ------------- Funções de seleção -------------*/
-
-
-int pickPoint(float pointX, float pointY, float mouseX, float mouseY){
-    if(mouseX <= pointX + TOLERANCE && mouseX >= pointX - TOLERANCE){
-        if(mouseY <= pointY + TOLERANCE && mouseY >= pointY - TOLERANCE) return 1;
-    }
-    return 0;
-}
-
-/*int getCode(Point point, float mouseX, float mouseY){
+/* ------------- Funções auxiliares -------------*/
+int getCode(Point point, float mouseX, float mouseY){
     int code = 0;
     //Verifica se está a esquerda
-    if(point.x < mouseX - TOLERANCE) {printf("Esquerda\n"); code += 8;}
+    if(point.x < mouseX - TOLERANCE) code += 8;
     //Verifica se está a direita
-    if(point.x > mouseX + TOLERANCE) {printf("Direita\n");code += 4;}
-    //Verifica se está abaixo
+    if(point.x > mouseX + TOLERANCE) code += 4;
 
-    if(582 - point.y < mouseY - TOLERANCE) {code += 2;}
+    float my = HEIGHT - mouseY;
+    float py = HEIGHT - point.y;
+
+    //Verifica se está abaixo
+    if(py < my - TOLERANCE) code += 2;
     //Verifica se está acima
-    if(582 - point.y > mouseY + TOLERANCE) {code += 1;}
+    if(py > my + TOLERANCE) code += 1;
+
     return code;
 }
 
-int pickLine(Point startPoint, Point endPoint, float mouseX, float mouseY){
-    printf("Ponto Start\n");
-    int startPointCode = getCode(startPoint, mouseX, mouseY);
-    printf("Ponto End\n");
-    int endPointCode = getCode(endPoint, mouseX, mouseY);
-
-    printf("Codes: %d, %d\n\n\n", startPointCode, endPointCode);
-    fflush(stdout);
+/* ------------- Funções de seleção -------------*/
+int pickPoint(float pointX, float pointY, float mouseX, float mouseY){
+    if(mouseX <= pointX + TOLERANCE && mouseX >= pointX - TOLERANCE){
+        float my = HEIGHT - mouseY;
+        float py = HEIGHT - pointY;
+        if(my <= py + TOLERANCE && my >= py - TOLERANCE) return 1;
+    }
     return 0;
-}*/
+}
 
-/*int pickLine(Point startPoint, Point endPoint, float mouseX, float mouseY){
-    int startPointCode[4];
-    int endPointCode[4];
-    int andOperation[4];
-    int changedStartPointCode;
-    int changedEndPointCode;
-    int aux;
+int pickLine(Point startPoint, Point endPoint, float mouseX, float mouseY){
+    float xMax, xMin, yMax, yMin, xStart, yStart, xEnd, yEnd;
+    int andOperation;
+    int iteration = 0;
 
+    Point newStartPoint;
+    newStartPoint.x = startPoint.x;
+    newStartPoint.y = startPoint.y;
+
+    xMax = mouseX + TOLERANCE;
+    xMin = mouseX - TOLERANCE;
+    yMax = mouseY + TOLERANCE;
+    yMin = mouseY - TOLERANCE;
 
     while(1){
-        changedStartPointCode = 0;
-        changedEndPointCode = 0;
+        int startPointCode = getCode(newStartPoint, mouseX, mouseY);
 
-        //Código E,D,Ab,Ac
-        //Ponto Inicial
-        //Verifica se está a esquerda
-        if(startPoint.x < mouseX - TOLERANCE) {startPointCode[0] = 1; changedStartPointCode = 1;}
-        else startPointCode[0] = 0;
-        //Verifica se está a direita
-        if(startPoint.x > mouseX + TOLERANCE) {startPointCode[1] = 1; changedStartPointCode = 1;}
-        else startPointCode[1] = 0;
-        //Verifica se está acima
-        if(startPoint.y < mouseY - TOLERANCE) {startPointCode[2] = 1; changedStartPointCode = 1;}
-        else startPointCode[2] = 0;
-        //Verifica se está abaixo
-        if(startPoint.y > mouseY + TOLERANCE) {startPointCode[3] = 1; changedStartPointCode = 1;}
-        else startPointCode[3] = 0;
+        int endPointCode = getCode(endPoint, mouseX, mouseY);
 
-        //Ponto Final
-        //Verifica se está a esquerda
-        if(endPoint.x < mouseX - TOLERANCE) {endPointCode[0] = 1; changedEndPointCode = 1;}
-        else endPointCode[0] = 0;
-        //Verifica se está a direita
-        if(endPoint.x > mouseX + TOLERANCE) {endPointCode[1] = 1; changedEndPointCode = 1;}
-        else endPointCode[1] = 0;
-        //Verifica se está acima
-        if(endPoint.y < mouseY - TOLERANCE) {endPointCode[2] = 1; changedEndPointCode = 1;}
-        else endPointCode[2] = 0;
-        //Verifica se está abaixo
-        if(endPoint.y > mouseY + TOLERANCE) {endPointCode[3] = 1; changedEndPointCode = 1;}
-        else endPointCode[3] = 0;
+        //Caso um dos dois seja 0 significa que pelo menos um dos pontos está na área do click
+        if(startPointCode == 0 || endPointCode == 0) return 1;
 
-        //Se algum dos codigos não foi alterado significa que um
-        //dos pontos da reta está dentro da área selecionável
-        if(changedStartPointCode == 0 || changedEndPointCode == 0) return 1;
+        andOperation = startPointCode & endPointCode;
 
-        aux = 0;
-        //Realiza operação AND
-        for(int i = 0; i < 4; i++){
-            if(startPointCode[i] == 1 && endPointCode[i] == 1){
-                andOperation[i] = 1;
-                aux += 1;
-            }
-            else{
-                andOperation[i] = 0;
-            }
+        //Se o AND for diferente de 0 significa que a reta está totalmente a esquerda, a direita, abaixo ou acima
+        if(andOperation != 0) return 0;
+
+        //Caso não trivial
+        xStart = newStartPoint.x;
+        yStart = newStartPoint.y;
+        xEnd = endPoint.x;
+        yEnd = endPoint.y;
+        //Se o ponto inicial estiver a esquerda
+        if((startPointCode & 8) == 8){
+            newStartPoint.y = yStart + (xMin - xStart)*((yEnd - yStart)/(xEnd - xStart));
+            newStartPoint.x = xMin;
         }
-
-        //Se auxiliar igual a 1 significa que a reta está totalmente a
-        //esquerda, a direita, abaixo ou acima da área selecionável
-        if(aux == 1){
-            return 0;
+        //Se o ponto inicial estiver a direita
+        else if((startPointCode & 4) == 4){
+            newStartPoint.y = yStart + (xMax - xStart)*((yEnd - yStart)/(xEnd - xStart));
+            newStartPoint.x = xMax;
+        }
+        //Se o ponto inicial estiver abaixo
+        else if((startPointCode & 2) == 2){
+            newStartPoint.x = xStart + (yMin - yStart)*((xEnd - xStart)/(yEnd - yStart));
+            newStartPoint.y = yMin;
+        }
+        //Se o ponto inicial estiver acima
+        else if((startPointCode & 1) == 1){
+            newStartPoint.x = xStart + (yMax - yStart)*((xEnd - xStart)/(yEnd - yStart));
+            newStartPoint.y = yMax;
         }
     }
-
-    return 0;
-}*/
+}
 
 /* ------------- Funções de desenho de objetos -------------*/
 void drawPoints() {
@@ -350,22 +335,18 @@ void drawPolygons(){
 
 
 void translatePoint(float x, float y){
+    for(int i = 0; i < numSelectedPoints; i++){
+        points[selectedPoints[i]].x += x;
+        points[selectedPoints[i]].y += y;
+    }
+}
 
-    if(x == 0.0){
-        for(int i = 0; i < numSelectedPoints; i++){
-            points[selectedPoints[i]].y += y;
-        }
-    }
-    else if(y == 0.0){
-        for(int i = 0; i < numSelectedPoints; i++){
-            points[selectedPoints[i]].x += x;
-        }
-    }
-    else{
-        for(int i = 0; i < numSelectedPoints; i++){
-            points[selectedPoints[i]].x += x;
-            points[selectedPoints[i]].y += y;
-        }
+void translateLine(float x, float y){
+    for(int i = 0; i < numSelectedLines; i++){
+        lines[selectedLines[i]].start.x += x;
+        lines[selectedLines[i]].start.y += y;
+        lines[selectedLines[i]].end.x += x;
+        lines[selectedLines[i]].end.y += y;
     }
 }
 
@@ -376,6 +357,9 @@ void scale(){
 void menuEvents(int option) {
     menuOption = option;
     menuClick = 1;
+}
+
+void subMenuEvents(int option) {
 }
 
 void mouseEvents(int button, int state, int x, int y){
@@ -403,7 +387,7 @@ void mouseEvents(int button, int state, int x, int y){
                     }
                 }
                 break;
-          case 3:
+            case 3:
                  if(button == GLUT_LEFT_BUTTON && state == GLUT_UP){
                     if(blockPolygonCreation == 0){
                         addPolygon();
@@ -417,21 +401,11 @@ void mouseEvents(int button, int state, int x, int y){
                 if(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP){
                     blockPolygonCreation = 0;
                 }
-           case 4:
-                //rotacionar
-                break;
-            case 5:
-                //transladar
-                break;
-            case 6:
-                //escala
-                break;
-            case 7:
+            case 4:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
                     int wasSelected = 0;
                     mouseStartPosition[0] = convertedX;
                     mouseStartPosition[1] = convertedY;
-                    //printf("%f, %f\n",convertedX, convertedY);
                     numSelectedPoints = 0;
                     numSelectedLines = 0;
                     numSelectedPolygons = 0;
@@ -441,8 +415,7 @@ void mouseEvents(int button, int state, int x, int y){
                         wasSelected = pickPoint(points[i].x, points[i].y, convertedX, convertedY);
 
                         if(wasSelected == 1){
-                            /*printf("Ponto Selecionado: (%f, %f)\n", points[i].x, points[i].y);
-                            fflush(stdout);*/
+
                             selectedPoints[numSelectedPoints] = i;
                             numSelectedPoints += 1;
                         }
@@ -451,21 +424,19 @@ void mouseEvents(int button, int state, int x, int y){
 
                     //Verifica se alguma reta foi selecionado
                     for(int i = 0; i < numLines; i++){
-                        //wasSelected = pickLine(lines[i].start, lines[i].end, convertedX, convertedY);
+                        wasSelected = pickLine(lines[i].start, lines[i].end, convertedX, convertedY);
 
-                        /*if(wasSelected == 1){
+                        if(wasSelected == 1){
                             selectedLines[numSelectedLines] = i;
                             numSelectedLines += 1;
-                        }*/
+                        }
                     }
 
                      /*
                     //Verifica se algum poligono foi selecionado
                     for(int i = 0; i < MAX_POLYGONS; i++){
                         wasSelected = //função de selecionar poligono
-
                         if(wasSelected == 1){
-
                         }
                     }
                     */
@@ -473,6 +444,7 @@ void mouseEvents(int button, int state, int x, int y){
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
                     //printf("%f, %f\n",convertedX, convertedY);
                     translatePoint(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
+                    translateLine(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     glutPostRedisplay();
                     //fflush(stdout);
                 }
@@ -515,7 +487,7 @@ void keyboardEvents(unsigned char key, int x, int y){
 
      }
 
-    if(menuOption == 4){
+    /*if(menuOption == 4){
         //rotaciona
     }
     else if(menuOption == 5){
@@ -534,7 +506,7 @@ void keyboardEvents(unsigned char key, int x, int y){
     else if(menuOption == 6){
         //escala
     }
-    /*
+
     else if(menuOption==5){
         if(key==127){
             printf("Deletando");
@@ -542,21 +514,17 @@ void keyboardEvents(unsigned char key, int x, int y){
     }
     */
 }
-void subMenuEvents(int options){}
 
 void createMenu() {
     int subMenuId = glutCreateMenu(subMenuEvents);
-    glutAddMenuEntry("Triangulo", 1);
-    glutAddMenuEntry("Quadrado", 2);
+    glutAddMenuEntry("Triangulo", 5);
+    glutAddMenuEntry("Quadrado", 6);
 
     int menuId = glutCreateMenu(menuEvents);
     glutAddMenuEntry("Ponto", 1);
     glutAddMenuEntry("Linha", 2);
     glutAddSubMenu("Poligono", subMenuId);
-    glutAddMenuEntry("Rotacionar objeto", 4);
-    glutAddMenuEntry("Transladar objeto", 5);
-    glutAddMenuEntry("Escala de objeto", 6);
-    glutAddMenuEntry("Selecionar objeto", 7);
+    glutAddMenuEntry("Selecionar objeto", 4);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -565,7 +533,7 @@ void createMenu() {
 int init(void){
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glMatrixMode(GL_PROJECTION);
-    gluOrtho2D(0.0, 960.0, 0.0, 582.0);
+    gluOrtho2D(0.0, WIDTH, 0.0, HEIGHT);
 }
 
 void display(void){
