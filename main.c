@@ -36,7 +36,7 @@ typedef struct{
 int numClicksToDrawLine = 0;
 Point clicksToDrawLine[2];
 
-int menuOption = 1;
+int menuOption = 0;
 int menuClick = 0;
 
 //PARA O CTRL
