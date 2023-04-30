@@ -7,7 +7,7 @@
 
 #define MAX_LINES 50
 #define MAX_POINTS 50
-#define MAX_POLYGONS 30
+#define MAX_POLYGONS 1000
 #define MAX_POINTS_POLYGON 10
 
 #define TOLERANCE 10.0
@@ -85,8 +85,8 @@ void removePoint(){
       for (int i = 0; i < numSelectedPoints; i++) {
             int selectedIndex = selectedPoints[i];
             for (int j = selectedIndex; j < numPoints - 1; j++) {
-                points[j].x = points[j + 1].x;
-                points[j].y = points[j + 1].y;
+                points[j] = points[j + 1];
+                points[j] = points[j + 1];
 
             }
             numPoints--;
@@ -103,8 +103,8 @@ void removeLine(){
       for (int i = 0; i < numSelectedLines; i++) {
             int selectedIndex = selectedLines[i];
             for (int j = selectedIndex; j < numLines - 1; j++) {
-                lines[j].start = lines[j + 1].start;
-                lines[j].end = lines[j + 1].end;
+                lines[j] = lines[j + 1];
+                lines[j] = lines[j + 1];
 
             }
             numLines--;
@@ -115,8 +115,31 @@ void removeLine(){
     numSelectedLines = 0;
 }
 
+void removePoygons(){
+    qsort(selectedPolygons, numSelectedPolygons, sizeof(int), compareIntegers);
+    if(numPolygons>0){
+      for (int i = 0; i < numSelectedPolygons; i++) {
+            int selectedIndex = selectedPolygons[i];
+            for (int j = selectedIndex; j < numPolygons - 1; j++) {
+                polygons[j] = polygons[j + 1];
+                polygons[j] = polygons[j + 1];
+
+            }
+            numPolygons--;
+        }
+
+    }
+
+    //Line *temp = realloc(lines, (numLines) * sizeof(Line));
+    //lines=temp;
+
+    numSelectedPolygons = 0;
+}
+
+
 /* ------------- Funções de adicionar -------------*/
 void addPoint(float x, float y){
+
     if(points==NULL){
         //deve ser alocado
         points = calloc(1, sizeof(Point));
@@ -131,6 +154,7 @@ void addPoint(float x, float y){
     point.y = y;
     points[numPoints] = point;
     numPoints++;
+
 }
 
 void addLine(Point start, Point end){
@@ -170,6 +194,7 @@ void addPolygon(){
         numPolygons += 1;
     }
 }
+
 
 void addPointOnPolygon(Point point){
     if(polygons[numPolygons-1].numPoints == MAX_POINTS_POLYGON){
@@ -423,7 +448,9 @@ void scaleLine(float xScale, float yScale){
 
 /* ------------- Funções de auxiliares de eventos -------------*/
 void callCtrlZ(){
+
   switch(menuOption){
+  
              case 1:
                 //memset(points, 0, sizeof(points));
                  if(numPoints!=0){
@@ -449,21 +476,29 @@ void callCtrlZ(){
 
 //d é 1 ou -1, e indica se a escala do objeto vai ser no sentido horario ou anti-horario
 void rotateObjects(float d){
+
     rotatePoint(d * 1.5);
     rotateLine(d * 1.5);
     glutPostRedisplay();
+    
 }
 
 //d é 1 ou -1, e indica se a escala do objeto vai ser positiva ou negativa
 void scaleObjects(float d){
+
     scaleLine(d * 1.2, d * 1.2);
     glutPostRedisplay();
+    
 }
 
+//remover pontos linhas e polygonos selecionados
 void deleteObjects(){
+
     removePoint();
     removeLine();
+    removePoygons();
     glutPostRedisplay();
+    
 }
 
 /* ------------- Funções de eventos -------------*/
@@ -473,6 +508,7 @@ void menuEvents(int option) {
 }
 
 void mouseEvents(int button, int state, int x, int y){
+
     float convertedX = x;
     float convertedY = y;
 
@@ -503,10 +539,12 @@ void mouseEvents(int button, int state, int x, int y){
                         addPolygon();
                         blockPolygonCreation = 1;
                     }
+                    
                     Point point;
                     point.x = convertedX;
                     point.y = convertedY;
                     addPointOnPolygon(point);
+                    
                 }
                 if(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP){
                     blockPolygonCreation = 0;
@@ -514,6 +552,7 @@ void mouseEvents(int button, int state, int x, int y){
                 break;
             case 4:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+                
                     int wasSelected = 0;
                     mouseStartPosition[0] = convertedX;
                     mouseStartPosition[1] = convertedY;
@@ -529,6 +568,7 @@ void mouseEvents(int button, int state, int x, int y){
 
                             selectedPoints[numSelectedPoints] = i;
                             numSelectedPoints += 1;
+                            
                         }
                     }
 
@@ -538,8 +578,10 @@ void mouseEvents(int button, int state, int x, int y){
                         wasSelected = pickLine(lines[i].start, lines[i].end, convertedX, convertedY);
 
                         if(wasSelected == 1){
+                        
                             selectedLines[numSelectedLines] = i;
                             numSelectedLines += 1;
+                            
                         }
                     }
 
@@ -553,23 +595,29 @@ void mouseEvents(int button, int state, int x, int y){
                     */
                 }
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+                
                     //printf("%f, %f\n",convertedX, convertedY);
                     translatePoint(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     translateLine(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     glutPostRedisplay();
                     //fflush(stdout);
+                    
                 }
                 break;
             case 5:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+                
                     drawTriangle(convertedX, convertedY);
                     glutPostRedisplay();
+                    
                 }
                 break;
             case 6:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+                
                     drawSquare(convertedX, convertedY);
                     glutPostRedisplay();
+                    
                 }
                 break;
         }
@@ -583,18 +631,22 @@ void mouseEvents(int button, int state, int x, int y){
 void keyboardEvents(unsigned char key, int x, int y){
     printf("%c",key);
     fflush(stdout);
+    
     switch(key){
+    
         case 26:
+            //chama funcao para remover o ultimo criado
             callCtrlZ();
             break;
-            break;
         case 'd':
-            deleteObjects();
+            //chama funcao apra deltar
+            deleteObjects(); // lines,points,polygons
             break;
     }
 }
 
 void specialEvents(unsigned char key, int x, int y){
+
     switch(key){
         case GLUT_KEY_LEFT:
             rotateObjects(-1.0);
@@ -609,19 +661,24 @@ void specialEvents(unsigned char key, int x, int y){
             scaleObjects(-1.0);
             break;
     }
+
 }
 
 void createMenu() {
+
+    //SUBMENU DO  MENU PRINCIPAL 
     int subMenuId = glutCreateMenu(menuEvents);
     glutAddMenuEntry("Triangulo", 5);
     glutAddMenuEntry("Quadrado", 6);
 
+    //MENU PRINCIPAL
     int menuId = glutCreateMenu(menuEvents);
     glutAddMenuEntry("Ponto", 1);
     glutAddMenuEntry("Linha", 2);
     glutAddSubMenu("Poligono", subMenuId);
     glutAddMenuEntry("Selecionar objeto", 4);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
+
 }
 
 // Coloca as funções de inicialização
@@ -634,11 +691,16 @@ int init(void){
 
 void display(void){
     glClear(GL_COLOR_BUFFER_BIT);
+
     glMatrixMode(GL_MODELVIEW);
+
     glLoadIdentity();
 
-    drawPolygons();
+    // desenha todos o spoligons do vetor polygons
+    drawPolygons(); 
+    // desenha todas as linhas do vetor lines
     drawLines();
+    // desenha todos o pontos do vetor points
     drawPoints();
 
     glutSwapBuffers();
