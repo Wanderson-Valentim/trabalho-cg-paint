@@ -21,7 +21,7 @@ gcc -o -lGL -lglut -lGLU -lm
 👤 **Wanderson Valentim & Wanderley Filho**
 
 * Github: [@derleymad](https://github.com/derleymad)
-* Github: [@Kvaibhav01](https://github.com/Wanderson-Valentim)
+* Github: [@wanderson_valetim](https://github.com/Wanderson-Valentim)
 
 ## Mostre que gostou!!
 
