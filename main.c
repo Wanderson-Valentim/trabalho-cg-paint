@@ -7,7 +7,7 @@
 
 #define MAX_LINES 50
 #define MAX_POINTS 50
-#define MAX_POLYGONS 30
+#define MAX_POLYGONS 10
 #define MAX_POINTS_POLYGON 10
 
 #define TOLERANCE 10.0
@@ -157,17 +157,15 @@ void addLine(Point start, Point end){
     numLines += 1;
 }
 
-void addPolygon(){
-    printf("%d",numPolygons);
-    fflush(stdout);
-
+int addPolygon(){
     if(numPolygons == MAX_POLYGONS){
-        // op. invalida fzr alguma coisa
+        return 0;
     }
     else{
         Polygon polygon;
         polygon.numPoints = 0;
         numPolygons += 1;
+        return 1;
     }
 }
 
@@ -263,6 +261,41 @@ int pickLine(Point startPoint, Point endPoint, float mouseX, float mouseY){
             newStartPoint.y = yMax;
         }
     }
+    return 0;
+}
+
+int pickPolygon(Polygon polygon, float mouseX, float mouseY){
+    float x, y, intersection;
+    int interceptions = 0;
+    Point p1, p2;
+
+    x = mouseX;
+    y = mouseY;
+
+    for(int i=0; i < polygon.numPoints; i++){
+        if(i == polygon.numPoints - 1){
+            p1 = polygon.points[i];
+            p2 = polygon.points[0];
+        }
+        else{
+            p1 = polygon.points[i];
+            p2 = polygon.points[i + 1];
+        }
+
+        if(((p1.y > y) && (p2.y > y)) || ((p1.y < y) && (p2.y < y)) || ((p1.x < x) && (p2.x < x)) || (p1.y == p2.y)) continue;
+        else if(((p1.x > x) && (p2.x > x)) || ((p1.y > y) && (p2.y < y)) || ((p1.y < y) && (p2.y > y))) interceptions += 1;
+        else{
+            intersection = p1.x + ((y - p1.y) * (p2.x - p1.x)) / (p2.y - p1.y);
+
+            if(intersection > x) interceptions += 1;
+        }
+    }
+
+    /*printf("Intercep: %d", interceptions);
+    fflush(stdout);*/
+
+    if(interceptions % 2 == 0) return 0;
+    else return 1;
 }
 
 /* ------------- Funções de desenho de objetos -------------*/
@@ -306,13 +339,16 @@ void drawTriangle(float mouseX, float mouseY){
     p3.x = mouseX - tolerance;
     p3.y = mouseY + tolerance;
 
-    addPolygon();
-    addPointOnPolygon(p1);
-    addPointOnPolygon(p2);
-    addPointOnPolygon(p3);
+    int wasCreated = addPolygon();
 
-    polygons[numPolygons-1].center.x = mouseX;
-    polygons[numPolygons-1].center.y = mouseY;
+    if(wasCreated == 1){
+        addPointOnPolygon(p1);
+        addPointOnPolygon(p2);
+        addPointOnPolygon(p3);
+
+        polygons[numPolygons-1].center.x = mouseX;
+        polygons[numPolygons-1].center.y = mouseY;
+    }
 }
 
 void drawSquare(float mouseX, float mouseY){
@@ -327,14 +363,17 @@ void drawSquare(float mouseX, float mouseY){
     p4.x = mouseX - tolerance;
     p4.y = mouseY - tolerance;
 
-    addPolygon();
-    addPointOnPolygon(p1);
-    addPointOnPolygon(p2);
-    addPointOnPolygon(p3);
-    addPointOnPolygon(p4);
+    int wasCreated = addPolygon();
 
-    polygons[numPolygons-1].center.x = mouseX;
-    polygons[numPolygons-1].center.y = mouseY;
+    if(wasCreated == 1){
+        addPointOnPolygon(p1);
+        addPointOnPolygon(p2);
+        addPointOnPolygon(p3);
+        addPointOnPolygon(p4);
+
+        polygons[numPolygons-1].center.x = mouseX;
+        polygons[numPolygons-1].center.y = mouseY;
+    }
 }
 
 /* ------------- Funções de transformações em objetos -------------*/
@@ -384,6 +423,29 @@ void rotateLine(float angle){
     }
 }
 
+void rotatePolygon(float angle){
+    float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
+    float xr, yr, xPoint, yPoint, rxPoint, ryPoint;
+
+    for(int i = 0; i < numSelectedPolygons; i++){
+        xr = polygons[selectedPolygons[i]].center.x;
+        yr = polygons[selectedPolygons[i]].center.y;
+
+        for(int k = 0; k < polygons[selectedPolygons[i]].numPoints; k++){
+            xPoint = polygons[selectedPolygons[i]].points[k].x;
+            yPoint = polygons[selectedPolygons[i]].points[k].y;
+
+            // Calcula as coordenadas relativas ao centro do poligono
+            rxPoint = xPoint - xr;
+            ryPoint = yPoint - yr;
+
+            // Rotação é aplicada em cada ponto do poligono
+            polygons[selectedPolygons[i]].points[k].x = xr + rxPoint*cos(convertedAngle) - ryPoint*sin(convertedAngle);
+            polygons[selectedPolygons[i]].points[k].y = yr + rxPoint*sin(convertedAngle) + ryPoint*cos(convertedAngle);
+        }
+    }
+}
+
 void translatePoint(float x, float y){
     for(int i = 0; i < numSelectedPoints; i++){
         points[selectedPoints[i]].x += x;
@@ -399,6 +461,17 @@ void translateLine(float x, float y){
         lines[selectedLines[i]].end.y += y;
         lines[selectedLines[i]].center.x = (lines[selectedLines[i]].start.x + lines[selectedLines[i]].end.x)/2;
         lines[selectedLines[i]].center.y = (lines[selectedLines[i]].start.y + lines[selectedLines[i]].end.y)/2;
+    }
+}
+
+void translatePolygon(float x, float y){
+    for(int i = 0; i < numSelectedPolygons; i++){
+        for(int k = 0; k < polygons[selectedPolygons[i]].numPoints; k++){
+            polygons[selectedPolygons[i]].points[k].x += x;
+            polygons[selectedPolygons[i]].points[k].y += y;
+        }
+        polygons[selectedPolygons[i]].center.x += x;
+        polygons[selectedPolygons[i]].center.y += y;
     }
 }
 
@@ -418,6 +491,24 @@ void scaleLine(float xScale, float yScale){
         lines[selectedLines[i]].start.y = yf + yScale * yStart - yf * yScale;
         lines[selectedLines[i]].end.x = xf + xScale * xEnd - xf * xScale;
         lines[selectedLines[i]].end.y = yf + yScale * yEnd - yf * yScale;
+    }
+}
+
+void scalePolygon(float xScale, float yScale){
+    float xf, yf, xPoint, yPoint;
+
+    for(int i = 0; i < numSelectedPolygons; i++){
+        xf = polygons[selectedPolygons[i]].center.x;
+        yf = polygons[selectedPolygons[i]].center.y;
+
+        for(int k = 0; k < polygons[selectedPolygons[i]].numPoints; k++){
+            xPoint = polygons[selectedPolygons[i]].points[k].x;
+            yPoint = polygons[selectedPolygons[i]].points[k].y;
+
+            // Escala é aplicada em cada ponto do polígono
+            polygons[selectedPolygons[i]].points[k].x = xf + xScale * xPoint - xf * xScale;
+            polygons[selectedPolygons[i]].points[k].y = yf + yScale * yPoint - yf * yScale;
+        }
     }
 }
 
@@ -451,12 +542,20 @@ void callCtrlZ(){
 void rotateObjects(float d){
     rotatePoint(d * 1.5);
     rotateLine(d * 1.5);
+    rotatePolygon(d * 1.5);
     glutPostRedisplay();
 }
 
 //d é 1 ou -1, e indica se a escala do objeto vai ser positiva ou negativa
 void scaleObjects(float d){
-    scaleLine(d * 1.2, d * 1.2);
+    if(d > -1){
+        scaleLine(1.2, 1.2);
+        scalePolygon(1.2, 1.2);
+    }
+    else{
+        scaleLine(0.8, 0.8);
+        scalePolygon(0.8, 0.8);
+    }
     glutPostRedisplay();
 }
 
@@ -543,19 +642,25 @@ void mouseEvents(int button, int state, int x, int y){
                         }
                     }
 
-                     /*
+
                     //Verifica se algum poligono foi selecionado
-                    for(int i = 0; i < MAX_POLYGONS; i++){
-                        wasSelected = //função de selecionar poligono
+                    for(int i = 0; i < numPolygons; i++){
+                        wasSelected = pickPolygon(polygons[i], convertedX, convertedY);
+
                         if(wasSelected == 1){
+                            /*printf("Polígono %d foi interceptado", i+1);
+                            fflush(stdout);*/
+                            selectedPolygons[numSelectedPolygons] = i;
+                            numSelectedPolygons += 1;
                         }
                     }
-                    */
+
                 }
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
                     //printf("%f, %f\n",convertedX, convertedY);
                     translatePoint(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     translateLine(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
+                    translatePolygon(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     glutPostRedisplay();
                     //fflush(stdout);
                 }
