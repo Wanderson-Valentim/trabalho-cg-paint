@@ -30,8 +30,8 @@ typedef struct{
 typedef struct{
     Point points[MAX_POINTS_POLYGON];
     int numPoints;
+    Point center;
 }Polygon;
-
 
 /* ------------- Definindo variaveis globais -------------*/
 int numClicksToDrawLine = 0;
@@ -157,7 +157,6 @@ void addLine(Point start, Point end){
     line.center = center;
     lines[numLines] = line;
     numLines += 1;
-
 }
 
 void addPolygon(){
@@ -183,7 +182,46 @@ void addPointOnPolygon(Point point){
     polygons[numPolygons-1].numPoints += 1;
 }
 
+void drawTriangle(float mouseX, float mouseY){
+    float tolerance = 20.0;
+    Point p1, p2, p3;
+    p1.x = mouseX;
+    p1.y = mouseY - tolerance;
+    p2.x = mouseX + tolerance;
+    p2.y = mouseY + tolerance;
+    p3.x = mouseX - tolerance;
+    p3.y = mouseY + tolerance;
 
+    addPolygon();
+    addPointOnPolygon(p1);
+    addPointOnPolygon(p2);
+    addPointOnPolygon(p3);
+
+    polygons[numPolygons-1].center.x = mouseX;
+    polygons[numPolygons-1].center.y = mouseY;
+}
+
+void drawSquare(float mouseX, float mouseY){
+    float tolerance = 20.0;
+    Point p1, p2, p3, p4;
+    p1.x = mouseX - tolerance;
+    p1.y = mouseY + tolerance;
+    p2.x = mouseX + tolerance;
+    p2.y = mouseY + tolerance;
+    p3.x = mouseX + tolerance;
+    p3.y = mouseY - tolerance;
+    p4.x = mouseX - tolerance;
+    p4.y = mouseY - tolerance;
+
+    addPolygon();
+    addPointOnPolygon(p1);
+    addPointOnPolygon(p2);
+    addPointOnPolygon(p3);
+    addPointOnPolygon(p4);
+
+    polygons[numPolygons-1].center.x = mouseX;
+    polygons[numPolygons-1].center.y = mouseY;
+}
 
 /* ------------- Funções de matrizes -------------*/
 /*void multiplyMatrix(int matrix1[][], int matrix2[][], int result[][]) {
@@ -392,13 +430,55 @@ void scaleLine(float xScale, float yScale){
     }
 }
 
+/* ------------- Funções de auxiliares de eventos -------------*/
+void callCtrlZ(){
+  switch(menuOption){
+             case 1:
+                //memset(points, 0, sizeof(points));
+                 if(numPoints!=0){
+                    numPoints--;
+                    points = realloc(points, (numPoints) * sizeof(Point));
+                 }
+                 break;
+             case 2:
+                 if(numLines!=0){
+                    numLines--;
+                    lines = realloc(lines, (numLines) * sizeof(Line));
+                 }
+                break;
+             case 3:
+                if(numPolygons!=0){
+                    numPolygons--;
+                }
+                break;
+         }
+
+        glutPostRedisplay();
+}
+
+//d é 1 ou -1, e indica se a escala do objeto vai ser no sentido horario ou anti-horario
+void rotateObjects(float d){
+    rotatePoint(d * 3.0);
+    rotateLine(d * 3.0);
+    glutPostRedisplay();
+}
+
+//d é 1 ou -1, e indica se a escala do objeto vai ser positiva ou negativa
+void scaleObjects(float d){
+    scaleLine(d * 1.2, d * 1.2);
+    glutPostRedisplay();
+}
+
+void deleteObjects(){
+    removePoint();
+    removeLine();
+    glutPostRedisplay();
+}
+
 /* ------------- Funções de eventos -------------*/
 void menuEvents(int option) {
     menuOption = option;
     menuClick = 1;
-}
-
-void subMenuEvents(int option) {
 }
 
 void mouseEvents(int button, int state, int x, int y){
@@ -440,6 +520,7 @@ void mouseEvents(int button, int state, int x, int y){
                 if(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP){
                     blockPolygonCreation = 0;
                 }
+                break;
             case 4:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
                     int wasSelected = 0;
@@ -488,6 +569,18 @@ void mouseEvents(int button, int state, int x, int y){
                     //fflush(stdout);
                 }
                 break;
+            case 5:
+                if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+                    drawTriangle(convertedX, convertedY);
+                    glutPostRedisplay();
+                }
+                break;
+            case 6:
+                if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
+                    drawSquare(convertedX, convertedY);
+                    glutPostRedisplay();
+                }
+                break;
         }
     }
     /*printf("%d %d %d\n", button, menuOption, numPoints);
@@ -495,52 +588,6 @@ void mouseEvents(int button, int state, int x, int y){
     menuClick = 0;
     glutPostRedisplay();
 }
-// FUNCOES PARA O EVENTO DO TECLADO
-void callCtrlZ(){
-  switch(menuOption){
-             case 1:
-                //memset(points, 0, sizeof(points));
-                 if(numPoints!=0){
-                    numPoints--;
-                    points = realloc(points, (numPoints) * sizeof(Point));
-                 }
-                 break;
-             case 2:
-                 if(numLines!=0){
-                    numLines--;
-                    lines = realloc(lines, (numLines) * sizeof(Line));
-                 }
-                break;
-             case 3:
-                if(numPolygons!=0){
-                    numPolygons--;
-                }
-                break;
-         }
-
-        glutPostRedisplay();
-}
-
-//d é 1 ou -1, e indica se a escala do objeto vai ser no sentido horario ou anti-horario
-void rotateObjects(float d){
-    rotatePoint(d * 3.0);
-    rotateLine(d * 3.0);
-    glutPostRedisplay();
-}
-
-//d é 1 ou -1, e indica se a escala do objeto vai ser positiva ou negativa
-void scaleObjects(float d){
-    scaleLine(d * 1.2, d * 1.2);
-    glutPostRedisplay();
-}
-
-void deleteObjects(){
-    removePoint();
-    removeLine();
-    glutPostRedisplay();
-}
-
-char transformationMode;
 
 void keyboardEvents(unsigned char key, int x, int y){
     printf("%c",key);
@@ -549,57 +596,32 @@ void keyboardEvents(unsigned char key, int x, int y){
         case 26:
             callCtrlZ();
             break;
-        case 'r':
-            transformationMode = 'r';
-            //rotateObjects();
-            break;
-        case 'e':
-            transformationMode = 'e';
-            //scaleObjects();
             break;
         case 'd':
             deleteObjects();
             break;
-        case ',':
-            if(transformationMode == 'r') rotateObjects(-1.0);
-            if(transformationMode == 'e') scaleObjects(-1.0);
+    }
+}
+
+void specialEvents(unsigned char key, int x, int y){
+    switch(key){
+        case GLUT_KEY_LEFT:
+            rotateObjects(-1.0);
             break;
-        case '.':
-            if(transformationMode == 'r') rotateObjects(1.0);
-            if(transformationMode == 'e') scaleObjects(1.0);
+        case GLUT_KEY_RIGHT:
+            rotateObjects(1.0);
+            break;
+        case GLUT_KEY_UP:
+            scaleObjects(1.0);
+            break;
+        case GLUT_KEY_DOWN:
+            scaleObjects(-1.0);
             break;
     }
-
-    /*if(menuOption == 4){
-        //rotaciona
-    }
-    else if(menuOption == 5){
-        float translateX = 0.0;
-        float translateY = 0.0;
-
-        if(key == 'w' || key == 'W') translateY = -1.0;
-        else if(key == 'd' || key == 'D') translateX = 1.0;
-        else if(key == 'a' || key == 'A') translateX = -1.0;
-        else if(key == 's' || key == 'S') translateY = 1.0;
-
-        translatePoint(translateX, translateY);
-
-        glutPostRedisplay();
-    }
-    else if(menuOption == 6){
-        //escala
-    }
-
-    else if(menuOption==5){
-        if(key==127){
-            printf("Deletando");
-        }
-    }
-    */
 }
 
 void createMenu() {
-    int subMenuId = glutCreateMenu(subMenuEvents);
+    int subMenuId = glutCreateMenu(menuEvents);
     glutAddMenuEntry("Triangulo", 5);
     glutAddMenuEntry("Quadrado", 6);
 
@@ -641,6 +663,7 @@ int main(int argc, char** argv){
     createMenu();
     glutKeyboardFunc(keyboardEvents);
     glutMouseFunc(mouseEvents);
+    glutSpecialFunc(specialEvents);
 
     init();
     glutDisplayFunc(display); // estabele a função "display como a função callback de exibição"
