@@ -72,6 +72,52 @@ int numSelectedPolygons = 0;
 int selectedPolygons[MAX_POLYGONS];
 
 /* ------------- Definindo funções de adiciona e remove objetos -------------*/
+//Funcao auxiliar
+int compareIntegers(const void *a, const void *b) {
+    int x = *(const int*)a;
+    int y = *(const int*)b;
+    return y - x;
+}
+
+//Funcoes de remover
+
+void removePoint(){
+    qsort(selectedPoints, numSelectedPoints, sizeof(int), compareIntegers);
+    if(numPoints>0){
+      for (int i = 0; i < numSelectedPoints; i++) {
+            int selectedIndex = selectedPoints[i];
+            for (int j = selectedIndex; j < numPoints - 1; j++) {
+                points[j].x = points[j + 1].x;
+                points[j].y = points[j + 1].y;
+
+            }
+            numPoints--;
+        }
+    }
+    Point *temp = realloc(points, (numPoints) * sizeof(Point));
+    points=temp;
+    numSelectedPoints = 0;
+}
+
+void removeLine(){
+    qsort(selectedLines, numSelectedLines, sizeof(int), compareIntegers);
+    if(numLines>0){
+      for (int i = 0; i < numSelectedLines; i++) {
+            int selectedIndex = selectedLines[i];
+            for (int j = selectedIndex; j < numLines - 1; j++) {
+                lines[j].start = lines[j + 1].start;
+                lines[j].end = lines[j + 1].end;
+
+            }
+            numLines--;
+        }
+    }
+    Line *temp = realloc(lines, (numLines) * sizeof(Line));
+    lines=temp;
+    numSelectedLines = 0;
+}
+
+//Funcoes de adicionar
 void addPoint(float x, float y){
     if(points==NULL){
         //deve ser alocado
@@ -87,27 +133,6 @@ void addPoint(float x, float y){
     point.y = y;
     points[numPoints] = point;
     numPoints++;
-}
-
-void removePoint(float x, float y){
-    /*if(numPoints == 0){
-        // op. invalida fzr alguma coisa
-    }
-    else{
-        int indexElement = 0
-
-        while(indexElement < numPoints || (x != points.x && y != points.y)){
-            indexElement++;
-        }
-
-        if(indexElement < numPoints){
-            for(int i = indexElement; i < numPoints-1; i++){
-                points[indexElement] = points[indexElement+1];
-            }
-
-            numPoints -= 1;
-        }
-    }*/
 }
 
 void addLine(Point start, Point end){
@@ -137,27 +162,6 @@ void addLine(Point start, Point end){
 
 }
 
-void removeLine(Point start, Point end){
-    /*if(numLines == 0){
-        // op. invalida fzr alguma coisa
-    }
-    else{
-        int indexElement = 0
-
-        while(indexElement < numLines || ()){
-            indexElement++;
-        }
-
-        if(indexElement < numLines){
-            for(int i = indexElement; i < numLines-1; i++){
-                lines[indexElement] = points[indexElement+1];
-            }
-
-            numLines -= 1;
-        }
-    }*/
-}
-
 void addPolygon(){
     printf("%d",numPolygons);
     fflush(stdout);
@@ -181,14 +185,7 @@ void addPointOnPolygon(Point point){
     polygons[numPolygons-1].numPoints += 1;
 }
 
-void removePolygon(){
-    if(numPolygons == 0){
-        // op. invalida fzr alguma coisa
-    }
-    else{
-        //numPolygons -= 1;
-    }
-}
+
 
 /* ------------- Funções de matrizes -------------*/
 /*void multiplyMatrix(int matrix1[][], int matrix2[][], int result[][]) {
@@ -224,6 +221,7 @@ int pickPoint(float pointX, float pointY, float mouseX, float mouseY){
         float py = HEIGHT - pointY;
         if(my <= py + TOLERANCE && my >= py - TOLERANCE) return 1;
     }
+
     return 0;
 }
 
@@ -320,28 +318,7 @@ void rotatePoint(float angle){
         points[selectedPoints[i]].x = (points[selectedPoints[i]].x * cos(convertedAngle)) - (points[selectedPoints[i]].y * sin(convertedAngle));
         points[selectedPoints[i]].y = (points[selectedPoints[i]].y * cos(convertedAngle)) + (points[selectedPoints[i]].x * sin(convertedAngle));
     }
-
-
-     /*float c, s;
-     c  = cos(angle); // eu comentei pq n ta reconhecendo no meu pc essas funcao de cos e sin
-     s = sin(angle); //essas funcao do capeta não estão funcionando ne da biblioteca math.h?
-
-     GLfloat matrix[] = {
-         c, -s, 0, 0,
-         s, c, 0, 0,
-         0, 0, 1, 0,
-         0, 0, 0, 1
-     };
-
-    glPushMatrix();// coloca a matriz atual na pilha
-    glMultMatrixf(matrix);//mutiplica a matriz de rotacao pela matriz atual
-    glBegin(GL_LINES);
-    //glVertex2f(lines[pos].start.x, 582 - lines[pos].start.y); // no caso o pos https://www.google.com/search?q=multiplica%C3%A7%C3%A3+de+matrizes&sourceid=chrome&ie=UTF-8seria a posicao do vetor quando o algoritmo de selecao achar qual a linha que foi selecionada
-    //glVertex2f(lines[pos].end.x, 582 - lines[pos].end.y);
-
-    glEnd();
-    glPopMatrix();*/
- }
+}
 
 void rotateLine(float angle){
     float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
@@ -488,13 +465,9 @@ void mouseEvents(int button, int state, int x, int y){
     menuClick = 0;
     glutPostRedisplay();
 }
-
-void keyboardEvents(unsigned char key, int x, int y){
-
-     if (key==26) {
-        printf("Ctrl + Z foi pressionado\n");
-
-         switch(menuOption){
+// FUNCOES PARA O EVENTO DO TECLADO
+void callCtrlZ(){
+  switch(menuOption){
              case 1:
                 //memset(points, 0, sizeof(points));
                  if(numPoints!=0){
@@ -516,14 +489,32 @@ void keyboardEvents(unsigned char key, int x, int y){
          }
 
         glutPostRedisplay();
+}
 
-     }
-
-    if(key == 'r'){
+void rotateObjects(){
         rotatePoint(1.0);
         rotateLine(3.0);
         glutPostRedisplay();
+}
+void deleteObjects(){
+        removePoint();
+        removeLine();
+        glutPostRedisplay();
+}
+
+void keyboardEvents(unsigned char key, int x, int y){
+    switch(key){
+        case 26:
+            callCtrlZ();
+            break;
+        case 'r':
+            rotateObjects();
+            break;
+        case 'd':
+            deleteObjects();
+            break;
     }
+
     /*if(menuOption == 4){
         //rotaciona
     }
