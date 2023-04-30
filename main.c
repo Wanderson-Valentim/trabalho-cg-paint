@@ -154,8 +154,6 @@ void addLine(Point start, Point end){
     line.start = start;
     line.end = end;
     Point center;
-    center.x = (start.x + end.x)/2;
-    center.y = (start.y + end.y)/2;
     line.center = center;
     lines[numLines] = line;
     numLines += 1;
@@ -313,33 +311,49 @@ void drawPolygons(){
 
 void rotatePoint(float angle){
     float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
+    float xr, yr, xStart, yStart, rxStart, ryStart;
+    xr = 0.0;
+    yr = HEIGHT;
 
     for(int i = 0; i < numSelectedPoints; i++){
-        points[selectedPoints[i]].x = (points[selectedPoints[i]].x * cos(convertedAngle)) - (points[selectedPoints[i]].y * sin(convertedAngle));
-        points[selectedPoints[i]].y = (points[selectedPoints[i]].y * cos(convertedAngle)) + (points[selectedPoints[i]].x * sin(convertedAngle));
+        xStart = points[selectedPoints[i]].x;
+        yStart = points[selectedPoints[i]].y;
+
+        // Calcula as coordenadas relativas ao centro da linha
+        rxStart = xStart - xr;
+        ryStart = yStart - yr;
+
+        // Rotação é aplicada no ponto
+        points[selectedPoints[i]].x = xr + rxStart*cos(convertedAngle) - ryStart*sin(convertedAngle);
+        points[selectedPoints[i]].y = yr + rxStart*sin(convertedAngle) + ryStart*cos(convertedAngle);
     }
 }
 
 void rotateLine(float angle){
     float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
-    float xr, yr, xStart, yStart, xEnd, yEnd;
+    float xr, yr, xStart, yStart, xEnd, yEnd, rxStart, ryStart, rxEnd, ryEnd;
 
     for(int i = 0; i < numSelectedLines; i++){
         xStart = lines[selectedLines[i]].start.x;
         yStart = lines[selectedLines[i]].start.y;
         xEnd = lines[selectedLines[i]].end.x;
         yEnd = lines[selectedLines[i]].end.y;
-
         xr = lines[selectedLines[i]].center.x;
         yr = lines[selectedLines[i]].center.y;
 
-        lines[selectedLines[i]].start.x = xr + xStart*cos(convertedAngle) - xr*cos(convertedAngle) - yStart*sin(convertedAngle) + yr*sin(convertedAngle);
-        lines[selectedLines[i]].start.y = yr + yStart*cos(convertedAngle) - yr*cos(convertedAngle) + xStart*sin(convertedAngle) - yr*sin(convertedAngle);
-        lines[selectedLines[i]].end.x = xr + xEnd*cos(convertedAngle) - xr*cos(convertedAngle) - yEnd*sin(convertedAngle) + yr*sin(convertedAngle);;
-        lines[selectedLines[i]].end.y = yr + yEnd*cos(convertedAngle) - yr*cos(convertedAngle) + xEnd*sin(convertedAngle) - yr*sin(convertedAngle);
+        // Calcula as coordenadas relativas ao centro da linha
+        rxStart = xStart - xr;
+        ryStart = yStart - yr;
+        rxEnd = xEnd - xr;
+        ryEnd = yEnd - yr;
+
+        // Rotação é aplicada em cada ponto da reta
+        lines[selectedLines[i]].start.x = xr + rxStart*cos(convertedAngle) - ryStart*sin(convertedAngle);
+        lines[selectedLines[i]].start.y = yr + rxStart*sin(convertedAngle) + ryStart*cos(convertedAngle);
+        lines[selectedLines[i]].end.x = xr + rxEnd*cos(convertedAngle) - ryEnd*sin(convertedAngle);
+        lines[selectedLines[i]].end.y = yr + rxEnd*sin(convertedAngle) + ryEnd*cos(convertedAngle);
     }
 }
-
 
 void translatePoint(float x, float y){
     for(int i = 0; i < numSelectedPoints; i++){
@@ -359,7 +373,23 @@ void translateLine(float x, float y){
     }
 }
 
-void scale(){
+void scaleLine(float xScale, float yScale){
+    float xf, yf, xStart, yStart, xEnd, yEnd, rxStart, ryStart, rxEnd, ryEnd;
+
+    for(int i = 0; i < numSelectedLines; i++){
+        xStart = lines[selectedLines[i]].start.x;
+        yStart = lines[selectedLines[i]].start.y;
+        xEnd = lines[selectedLines[i]].end.x;
+        yEnd = lines[selectedLines[i]].end.y;
+        xf = lines[selectedLines[i]].center.x;
+        yf = lines[selectedLines[i]].center.y;
+
+        // Escala é aplicada em cada ponto da reta
+        lines[selectedLines[i]].start.x = xf + xScale * xStart - xf * xScale;
+        lines[selectedLines[i]].start.y = yf + yScale * yStart - yf * yScale;
+        lines[selectedLines[i]].end.x = xf + xScale * xEnd - xf * xScale;
+        lines[selectedLines[i]].end.y = yf + yScale * yEnd - yf * yScale;
+    }
 }
 
 /* ------------- Funções de eventos -------------*/
@@ -491,27 +521,52 @@ void callCtrlZ(){
         glutPostRedisplay();
 }
 
-void rotateObjects(){
-        rotatePoint(1.0);
-        rotateLine(3.0);
-        glutPostRedisplay();
-}
-void deleteObjects(){
-        removePoint();
-        removeLine();
-        glutPostRedisplay();
+//d é 1 ou -1, e indica se a escala do objeto vai ser no sentido horario ou anti-horario
+void rotateObjects(float d){
+    rotatePoint(d * 3.0);
+    rotateLine(d * 3.0);
+    glutPostRedisplay();
 }
 
+//d é 1 ou -1, e indica se a escala do objeto vai ser positiva ou negativa
+void scaleObjects(float d){
+    scaleLine(d * 1.2, d * 1.2);
+    glutPostRedisplay();
+}
+
+void deleteObjects(){
+    removePoint();
+    removeLine();
+    glutPostRedisplay();
+}
+
+char transformationMode;
+
 void keyboardEvents(unsigned char key, int x, int y){
+    printf("%c",key);
+    fflush(stdout);
     switch(key){
         case 26:
             callCtrlZ();
             break;
         case 'r':
-            rotateObjects();
+            transformationMode = 'r';
+            //rotateObjects();
+            break;
+        case 'e':
+            transformationMode = 'e';
+            //scaleObjects();
             break;
         case 'd':
             deleteObjects();
+            break;
+        case ',':
+            if(transformationMode == 'r') rotateObjects(-1.0);
+            if(transformationMode == 'e') scaleObjects(-1.0);
+            break;
+        case '.':
+            if(transformationMode == 'r') rotateObjects(1.0);
+            if(transformationMode == 'e') scaleObjects(1.0);
             break;
     }
 
