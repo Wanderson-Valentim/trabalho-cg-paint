@@ -72,15 +72,13 @@ int numSelectedPolygons = 0;
 int selectedPolygons[MAX_POLYGONS];
 
 /* ------------- Definindo funções de adiciona e remove objetos -------------*/
-//Funcao auxiliar
 int compareIntegers(const void *a, const void *b) {
     int x = *(const int*)a;
     int y = *(const int*)b;
     return y - x;
 }
 
-//Funcoes de remover
-
+/* ------------- Funções de remover -------------*/
 void removePoint(){
     qsort(selectedPoints, numSelectedPoints, sizeof(int), compareIntegers);
     if(numPoints>0){
@@ -117,7 +115,7 @@ void removeLine(){
     numSelectedLines = 0;
 }
 
-//Funcoes de adicionar
+/* ------------- Funções de adicionar -------------*/
 void addPoint(float x, float y){
     if(points==NULL){
         //deve ser alocado
@@ -180,55 +178,6 @@ void addPointOnPolygon(Point point){
     int numPointsPolygon = polygons[numPolygons-1].numPoints;
     polygons[numPolygons-1].points[numPointsPolygon] = point;
     polygons[numPolygons-1].numPoints += 1;
-}
-
-void drawTriangle(float mouseX, float mouseY){
-    float tolerance = 20.0;
-    Point p1, p2, p3;
-    p1.x = mouseX;
-    p1.y = mouseY - tolerance;
-    p2.x = mouseX + tolerance;
-    p2.y = mouseY + tolerance;
-    p3.x = mouseX - tolerance;
-    p3.y = mouseY + tolerance;
-
-    addPolygon();
-    addPointOnPolygon(p1);
-    addPointOnPolygon(p2);
-    addPointOnPolygon(p3);
-
-    polygons[numPolygons-1].center.x = mouseX;
-    polygons[numPolygons-1].center.y = mouseY;
-}
-
-void drawSquare(float mouseX, float mouseY){
-    float tolerance = 20.0;
-    Point p1, p2, p3, p4;
-    p1.x = mouseX - tolerance;
-    p1.y = mouseY + tolerance;
-    p2.x = mouseX + tolerance;
-    p2.y = mouseY + tolerance;
-    p3.x = mouseX + tolerance;
-    p3.y = mouseY - tolerance;
-    p4.x = mouseX - tolerance;
-    p4.y = mouseY - tolerance;
-
-    addPolygon();
-    addPointOnPolygon(p1);
-    addPointOnPolygon(p2);
-    addPointOnPolygon(p3);
-    addPointOnPolygon(p4);
-
-    polygons[numPolygons-1].center.x = mouseX;
-    polygons[numPolygons-1].center.y = mouseY;
-}
-
-/* ------------- Funções de matrizes -------------*/
-/*void multiplyMatrix(int matrix1[][], int matrix2[][], int result[][]) {
-
-}*/
-
-void sumMatrix(){
 }
 
 /* ------------- Funções auxiliares -------------*/
@@ -347,6 +296,48 @@ void drawPolygons(){
     }
 }
 
+void drawTriangle(float mouseX, float mouseY){
+    float tolerance = 20.0;
+    Point p1, p2, p3;
+    p1.x = mouseX;
+    p1.y = mouseY - tolerance;
+    p2.x = mouseX + tolerance;
+    p2.y = mouseY + tolerance;
+    p3.x = mouseX - tolerance;
+    p3.y = mouseY + tolerance;
+
+    addPolygon();
+    addPointOnPolygon(p1);
+    addPointOnPolygon(p2);
+    addPointOnPolygon(p3);
+
+    polygons[numPolygons-1].center.x = mouseX;
+    polygons[numPolygons-1].center.y = mouseY;
+}
+
+void drawSquare(float mouseX, float mouseY){
+    float tolerance = 20.0;
+    Point p1, p2, p3, p4;
+    p1.x = mouseX - tolerance;
+    p1.y = mouseY + tolerance;
+    p2.x = mouseX + tolerance;
+    p2.y = mouseY + tolerance;
+    p3.x = mouseX + tolerance;
+    p3.y = mouseY - tolerance;
+    p4.x = mouseX - tolerance;
+    p4.y = mouseY - tolerance;
+
+    addPolygon();
+    addPointOnPolygon(p1);
+    addPointOnPolygon(p2);
+    addPointOnPolygon(p3);
+    addPointOnPolygon(p4);
+
+    polygons[numPolygons-1].center.x = mouseX;
+    polygons[numPolygons-1].center.y = mouseY;
+}
+
+/* ------------- Funções de transformações em objetos -------------*/
 void rotatePoint(float angle){
     float convertedAngle = (angle * 3.14159) / 180.0; // converte para radianos
     float xr, yr, xStart, yStart, rxStart, ryStart;
@@ -458,8 +449,8 @@ void callCtrlZ(){
 
 //d é 1 ou -1, e indica se a escala do objeto vai ser no sentido horario ou anti-horario
 void rotateObjects(float d){
-    rotatePoint(d * 3.0);
-    rotateLine(d * 3.0);
+    rotatePoint(d * 1.5);
+    rotateLine(d * 1.5);
     glutPostRedisplay();
 }
 
