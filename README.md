@@ -7,8 +7,8 @@
 
 ### ✨ Demo
 <p float="left">
-  <img src="images/entrada.jpg" width="200" />
-  <img src="images/desenho.jpg" width="200" />
+  <img src="images/entrada.png" width="200" />
+  <img src="images/desenho.png" width="200" />
 </p>
 
 ## Como testar?
