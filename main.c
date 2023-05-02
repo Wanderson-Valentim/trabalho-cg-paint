@@ -308,7 +308,7 @@ int pickPolygon(Polygon polygon, float mouseX, float mouseY){
         }
 
         if(((p1.y > y) && (p2.y > y)) || ((p1.y < y) && (p2.y < y)) || ((p1.x < x) && (p2.x < x)) || (p1.y == p2.y)) continue;
-        else if(((p1.x > x) && (p2.x > x)) || ((p1.y > y) && (p2.y < y)) || ((p1.y < y) && (p2.y > y))) interceptions += 1;
+        else if(((p1.x > x) && (p2.x > x)) && (((p1.y > y) && (p2.y < y)) || ((p1.y < y) && (p2.y > y)))) interceptions += 1;
         else{
             intersection = p1.x + ((y - p1.y) * (p2.x - p1.x)) / (p2.y - p1.y);
 
@@ -541,7 +541,7 @@ void scalePolygon(float xScale, float yScale){
 void callCtrlZ(){
 
   switch(menuOption){
-  
+
              case 1:
                 //memset(points, 0, sizeof(points));
                  if(numPoints!=0){
@@ -572,7 +572,7 @@ void rotateObjects(float d){
     rotateLine(d * 1.5);
     rotatePolygon(d * 1.5);
     glutPostRedisplay();
-    
+
 }
 
 //d é 1 ou -1, e indica se a escala do objeto vai ser positiva ou negativa
@@ -586,7 +586,7 @@ void scaleObjects(float d){
         scalePolygon(0.8, 0.8);
     }
     glutPostRedisplay();
-    
+
 }
 
 //remover pontos linhas e polygonos selecionados
@@ -596,7 +596,7 @@ void deleteObjects(){
     removeLine();
     removePoygons();
     glutPostRedisplay();
-    
+
 }
 
 /* ------------- Funções de eventos -------------*/
@@ -637,12 +637,12 @@ void mouseEvents(int button, int state, int x, int y){
                         addPolygon();
                         blockPolygonCreation = 1;
                     }
-                    
+
                     Point point;
                     point.x = convertedX;
                     point.y = convertedY;
                     addPointOnPolygon(point);
-                    
+
                 }
                 if(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP){
                     blockPolygonCreation = 0;
@@ -650,7 +650,7 @@ void mouseEvents(int button, int state, int x, int y){
                 break;
             case 4:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-                
+
                     int wasSelected = 0;
                     mouseStartPosition[0] = convertedX;
                     mouseStartPosition[1] = convertedY;
@@ -666,7 +666,7 @@ void mouseEvents(int button, int state, int x, int y){
 
                             selectedPoints[numSelectedPoints] = i;
                             numSelectedPoints += 1;
-                            
+
                         }
                     }
 
@@ -676,10 +676,10 @@ void mouseEvents(int button, int state, int x, int y){
                         wasSelected = pickLine(lines[i].start, lines[i].end, convertedX, convertedY);
 
                         if(wasSelected == 1){
-                        
+
                             selectedLines[numSelectedLines] = i;
                             numSelectedLines += 1;
-                            
+
                         }
                     }
 
@@ -698,30 +698,30 @@ void mouseEvents(int button, int state, int x, int y){
 
                 }
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
-                
+
                     //printf("%f, %f\n",convertedX, convertedY);
                     translatePoint(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     translateLine(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     translatePolygon(convertedX - mouseStartPosition[0], convertedY - mouseStartPosition[1]);
                     glutPostRedisplay();
                     //fflush(stdout);
-                    
+
                 }
                 break;
             case 5:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
-                
+
                     drawTriangle(convertedX, convertedY);
                     glutPostRedisplay();
-                    
+
                 }
                 break;
             case 6:
                 if (button == GLUT_LEFT_BUTTON && state == GLUT_UP){
-                
+
                     drawSquare(convertedX, convertedY);
                     glutPostRedisplay();
-                    
+
                 }
                 break;
         }
@@ -735,9 +735,9 @@ void mouseEvents(int button, int state, int x, int y){
 void keyboardEvents(unsigned char key, int x, int y){
     printf("%c",key);
     fflush(stdout);
-    
+
     switch(key){
-    
+
         case 26:
             //chama funcao para remover o ultimo criado
             callCtrlZ();
@@ -770,7 +770,7 @@ void specialEvents(unsigned char key, int x, int y){
 
 void createMenu() {
 
-    //SUBMENU DO  MENU PRINCIPAL 
+    //SUBMENU DO  MENU PRINCIPAL
     int subMenuId = glutCreateMenu(menuEvents);
     glutAddMenuEntry("Triangulo", 5);
     glutAddMenuEntry("Quadrado", 6);
@@ -801,7 +801,7 @@ void display(void){
     glLoadIdentity();
 
     // desenha todos o spoligons do vetor polygons
-    drawPolygons(); 
+    drawPolygons();
     // desenha todas as linhas do vetor lines
     drawLines();
     // desenha todos o pontos do vetor points

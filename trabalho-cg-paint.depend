@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1682888355 source:/home/wanderson/Documents/faculdade/compGraf/trabalho-cg-paint/main.c
+1683057307 source:/home/wanderson/Documents/faculdade/compGraf/trabalho-cg-paint/main.c
 	<stdio.h>
 	<stdlib.h>
 	<GL/glut.h>
