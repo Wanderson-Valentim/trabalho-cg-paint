@@ -1,9 +1,0 @@
-# depslib dependency file v1.0
-1683057307 source:/home/wanderson/Documents/faculdade/compGraf/trabalho-cg-paint/main.c
-	<stdio.h>
-	<stdlib.h>
-	<GL/glut.h>
-	<math.h>
-	<stdbool.h>
-	<string.h>
-
